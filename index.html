@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CrewRoster — NEOS Individual Plan</title>
+<title>CrewRoster</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap');
@@ -61,6 +61,26 @@
     letter-spacing: 0.9px; margin-top: 2px;
     font-family: 'JetBrains Mono', monospace;
   }
+  .header-lastupdate {
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    margin-top: 3px;
+  }
+  #headerLastUpdateVal {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 800;
+    color: #FBBF24;
+    letter-spacing: 0.3px;
+  }
+  @media (prefers-color-scheme: dark) {
+    #headerLastUpdateVal { color: #FCD34D; }
+  }
+
   .header-range {
     font-size: 11px; color: var(--text-muted);
     font-family: 'JetBrains Mono', monospace; margin-top: 1px;
@@ -117,36 +137,131 @@
 
   .main { max-width: 680px; margin: 0 auto; padding: 20px 16px 80px; }
 
+  /* ── UPLOAD SCREEN ── */
+  .upload-screen {
+    min-height: calc(100vh - 70px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 24px;
+    gap: 48px;
+  }
+  .upload-hero {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+  .upload-wordmark {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #94A3B8;
+  }
+  .upload-heading {
+    font-family: 'Inter', sans-serif;
+    font-size: 32px;
+    font-weight: 800;
+    color: #0F172A;
+    letter-spacing: -0.5px;
+    line-height: 1.1;
+  }
+  .upload-heading span {
+    color: #2563EB;
+  }
+  .upload-sub {
+    font-size: 14px;
+    color: #94A3B8;
+    font-family: 'Inter', sans-serif;
+    font-weight: 400;
+  }
   .upload-zone {
-    border: 2px dashed var(--border); border-radius: var(--radius);
-    background: var(--surface); padding: 48px 24px; text-align: center;
-    cursor: pointer; transition: border-color 0.2s, background 0.2s;
+    width: 100%;
+    max-width: 420px;
+    border: 1.5px dashed #CBD5E1;
+    border-radius: 20px;
+    background: #FFFFFF;
+    padding: 40px 32px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
     animation: fadeUp 0.4s ease both;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
   }
   .upload-zone:hover, .upload-zone.drag-over {
-    border-color: var(--accent-flight); background: #EEF3FF;
+    border-color: #2563EB;
+    background: #F8FAFF;
+    box-shadow: 0 0 0 4px rgba(37,99,235,0.08);
   }
   .upload-icon {
-    width: 54px; height: 54px; margin: 0 auto 14px;
-    background: var(--bg); border-radius: 14px;
-    display: flex; align-items: center; justify-content: center;
-    color: var(--text-secondary);
+    width: 52px;
+    height: 52px;
+    background: #F1F5F9;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748B;
+    flex-shrink: 0;
   }
-  .upload-title { font-size: 17px; font-weight: 600; margin-bottom: 5px; }
-  .upload-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 8px; }
-  .upload-format {
-    display: inline-block; background: #F0FDF4; color: #166534;
-    border: 1px solid #BBF7D0; border-radius: 8px;
-    padding: 4px 10px; font-size: 11px; font-weight: 600;
-    letter-spacing: 0.4px; margin-bottom: 20px;
-    font-family: 'JetBrains Mono', monospace;
+  .upload-zone:hover .upload-icon,
+  .upload-zone.drag-over .upload-icon {
+    background: #EEF3FF;
+    color: #2563EB;
+  }
+  .upload-drop-text {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .upload-drop-title {
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: #1E293B;
+  }
+  .upload-drop-sub {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    color: #94A3B8;
+    font-weight: 400;
+  }
+  .upload-divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+  }
+  .upload-divider::before,
+  .upload-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #E2E8F0;
+  }
+  .upload-divider span {
+    font-size: 11px;
+    color: #CBD5E1;
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    letter-spacing: 0.5px;
   }
   .btn-primary {
     display: inline-flex; align-items: center; gap: 8px;
-    background: var(--text-primary); color: white; border: none;
-    border-radius: 10px; padding: 10px 20px; font-size: 14px;
-    font-weight: 600; cursor: pointer; font-family: inherit;
+    background: #0F172A; color: white; border: none;
+    border-radius: 10px; padding: 11px 22px; font-size: 13px;
+    font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif;
+    letter-spacing: 0.2px;
     transition: opacity 0.15s, transform 0.1s;
+    width: 100%;
+    justify-content: center;
   }
   .btn-primary:hover { opacity: 0.85; }
   .btn-primary:active { transform: scale(0.98); }
@@ -185,6 +300,92 @@
   .search-input:focus { border-color: var(--accent-flight); }
 
   .day-group { margin-bottom: 20px; animation: fadeUp 0.4s ease both; }
+
+  /* REMARKS SECTION — shared base */
+  .card-remarks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    align-items: center;
+    padding: 7px 14px 9px;
+    margin-top: 0;
+  }
+  .card-remarks-label {
+    font-family: 'Inter', sans-serif;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    margin-right: 2px;
+    flex-shrink: 0;
+  }
+  .card-remarks-tag {
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    font-weight: 500;
+    border-radius: 5px;
+    padding: 2px 8px;
+    white-space: nowrap;
+  }
+  /* Dark cards: flight, DH, SBY, OFF */
+  .card-flight-dark .card-remarks,
+  .card-dh-dark .card-remarks,
+  .card-sby-dark .card-remarks,
+  .card-off-dark .card-remarks,
+  .card-training .card-remarks {
+    border-top: 1px solid rgba(255,255,255,0.1);
+  }
+  .card-flight-dark .card-remarks-label,
+  .card-dh-dark .card-remarks-label,
+  .card-sby-dark .card-remarks-label,
+  .card-off-dark .card-remarks-label,
+  .card-training .card-remarks-label {
+    color: rgba(255,255,255,0.4);
+  }
+  .card-flight-dark .card-remarks-tag,
+  .card-dh-dark .card-remarks-tag,
+  .card-sby-dark .card-remarks-tag,
+  .card-off-dark .card-remarks-tag,
+  .card-training .card-remarks-tag {
+    color: rgba(255,255,255,0.82);
+    background: rgba(255,255,255,0.1);
+  }
+  /* Light cards: .card (layover, rest, hol) */
+  .card .card-remarks {
+    border-top: 1px solid var(--border);
+  }
+  .card .card-remarks-label { color: var(--text-muted); }
+  .card .card-remarks-tag   { color: var(--text-secondary); background: var(--bg); }
+  @media (prefers-color-scheme: dark) {
+    .card .card-remarks-tag { background: #21262D; color: #8B949E; }
+    .card .card-remarks      { border-top-color: var(--border); }
+  }
+
+  /* TODAY FAB */
+  .fab-today {
+    position: fixed;
+    bottom: 24px;
+    right: 20px;
+    z-index: 200;
+    display: none;
+    align-items: center;
+    gap: 7px;
+    background: #0F172A;
+    color: #F1F5F9;
+    border: none;
+    border-radius: 20px;
+    padding: 10px 16px 10px 13px;
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+    transition: opacity 0.2s, transform 0.2s;
+  }
+  .fab-today:hover { background: #1E293B; transform: translateY(-1px); }
+  .fab-today.visible { display: flex; }
+  .fab-today svg { flex-shrink: 0; }
 
   /* TURNO connector — vertical line only in the gap between day-groups */
   .turno-wrap {
@@ -656,6 +857,11 @@
     color: rgba(255,255,255,0.5);
     font-family: 'JetBrains Mono', monospace;
   }
+  .sby-overflow {
+    font-size: 14px !important;
+    opacity: 0.7;
+    letter-spacing: 0;
+  }
   .sby-utc {
     font-size: 11px;
     font-weight: 600;
@@ -830,6 +1036,60 @@
     .header-date { font-size: 22px; }
     .main { padding: 24px 28px 100px; }
   }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0D1117;
+      --surface: #161B22;
+      --border: #30363D;
+      --text-primary: #E6EDF3;
+      --text-secondary: #8B949E;
+      --text-muted: #6E7681;
+    }
+    body { background: var(--bg); color: var(--text-primary); }
+    .header {
+      background: rgba(13,17,23,0.94);
+      border-bottom-color: var(--border);
+    }
+    /* Day label — high contrast on dark background */
+    .day-label-num   { color: #F0F6FC; }
+    .day-label-month { color: #8B949E; }
+    .day-label-year  { color: #484F58; }
+    .day-label-wd    { color: #E6EDF3; background: #21262D; border-color: #30363D; }
+    /* Cards */
+    .card { background: var(--surface); border-color: var(--border); }
+    /* Turno connector */
+    .turno-wrap::before { opacity: 0.45; }
+    /* Search / filter bar */
+    .filter-bar { background: rgba(13,17,23,0.94); border-color: var(--border); }
+    .search-input { background: var(--surface); color: var(--text-primary); border-color: var(--border); }
+    .search-input::placeholder { color: var(--text-muted); }
+    .filter-chip { background: var(--surface); color: var(--text-secondary); border-color: var(--border); }
+    .filter-chip.active { background: #E6EDF3; color: #0D1117; border-color: #E6EDF3; }
+    /* Upload screen */
+    .upload-heading { color: #E6EDF3; }
+    .upload-zone { background: #161B22; border-color: #30363D; }
+    .upload-zone:hover, .upload-zone.drag-over { background: #1C2128; border-color: #388BFD; box-shadow: 0 0 0 4px rgba(56,139,253,0.12); }
+    .upload-icon { background: #21262D; color: #8B949E; }
+    .upload-drop-title { color: #E6EDF3; }
+    .upload-drop-sub { color: #6E7681; }
+    .upload-divider::before, .upload-divider::after { background: #30363D; }
+    .upload-divider span { color: #484F58; }
+    .btn-primary { background: #21262D; color: #E6EDF3; border: 1px solid #30363D; }
+    .btn-primary:hover { background: #30363D; }
+    /* Debug panel */
+    .debug-panel { background: #161B22; border-color: #30363D; }
+    .debug-header { color: #8B949E; }
+    /* FAB */
+    .fab-today { background: #21262D; color: #E6EDF3; border: 1px solid #30363D; box-shadow: 0 4px 16px rgba(0,0,0,0.5); }
+    .fab-today:hover { background: #30363D; }
+    /* Stat pills */
+    .stat-pill { background: #161B22; border-color: #30363D; }
+    /* Unrecognized panel */
+    .debug-content { background: #0D1117; }
+    .debug-line { color: #8B949E; border-bottom-color: #21262D; }
+  }
+
   #fileInput { display: none; }
 </style>
 </head>
@@ -843,6 +1103,9 @@
       <div class="header-date" id="headerDate">CREW ROSTER</div>
       <div class="header-meta" id="headerMeta">TIMELINE · UTC</div>
       <div class="header-range" id="headerRange"></div>
+      <div class="header-lastupdate" id="headerLastUpdate" style="display:none">
+        LAST UPDATE <span id="headerLastUpdateVal"></span>
+      </div>
       <div class="header-stats" id="headerStats">
         <div class="stat-pill stat-fh">
           <span class="stat-value" id="statFH">—</span>
@@ -864,7 +1127,7 @@
           <circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
         </svg>
       </button>
-      <button class="btn-icon" title="Carica nuovo roster" onclick="document.getElementById('fileInput').click()">
+      <button class="btn-icon" title="Carica nuovo roster" onclick="try{localStorage.removeItem('crewroster_text');localStorage.removeItem('crewroster_filename');}catch(e){}document.getElementById('fileInput').click()">
         <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
           <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
         </svg>
@@ -876,25 +1139,45 @@
 <input type="file" id="fileInput" accept=".pdf" onchange="handleFileSelect(event)">
 
 <main class="main" id="mainContent">
-  <div class="upload-zone" id="uploadZone">
-    <div class="upload-icon">
-      <svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
-        <polyline points="14 2 14 8 20 8"/>
-        <line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/>
-      </svg>
+  <div class="upload-screen" id="uploadZone">
+    <div class="upload-hero">
+      <div class="upload-wordmark">Individual Plan Viewer</div>
+      <div class="upload-heading">Il tuo <span>roster</span>,<br>a colpo d'occhio.</div>
+      <div class="upload-sub">Carica il PDF del tuo piano individuale</div>
     </div>
-    <div class="upload-title">Carica il tuo roster NEOS</div>
-    <div class="upload-sub">Trascina il PDF qui, oppure clicca per sfogliare</div><div style="font-size:10px;color:#9CA3AF;margin-top:4px;font-family:monospace">v19 · mono + arrow + uniform CI</div>
-    <div class="upload-format">✓ NEOS Individual Plan · ALL TIMES UTC</div>
-    <button class="btn-primary" onclick="document.getElementById('fileInput').click()">
-      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
-      </svg>
-      Carica roster PDF
-    </button>
+    <div style="width:100%;max-width:420px;display:flex;flex-direction:column;align-items:center;gap:16px;">
+      <div class="upload-zone" id="uploadDropZone" onclick="document.getElementById('fileInput').click()">
+        <div class="upload-icon">
+          <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/>
+          </svg>
+        </div>
+        <div class="upload-drop-text">
+          <div class="upload-drop-title">Trascina il PDF qui</div>
+          <div class="upload-drop-sub">Individual Plan · formato PDF con testo</div>
+        </div>
+        <div class="upload-divider"><span>oppure</span></div>
+        <button class="btn-primary" onclick="event.stopPropagation();document.getElementById('fileInput').click()">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+          </svg>
+          Sfoglia file
+        </button>
+      </div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#CBD5E1;letter-spacing:1px;">ALL TIMES UTC</div>
+    </div>
   </div>
   <div id="timeline" style="display:none;"></div>
+  <button class="fab-today" id="fabToday" onclick="scrollToToday()">
+    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+      <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/>
+      <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+      <circle cx="12" cy="16" r="1.5" fill="currentColor" stroke="none"/>
+    </svg>
+    OGGI
+  </button>
 </main>
 
 <script>
@@ -914,7 +1197,7 @@ if (typeof pdfjsLib !== 'undefined') {
 // ─────────────────────────────────────────────────────────────
 // STATE
 // ─────────────────────────────────────────────────────────────
-const S = { schedule:[], showOff:true, search:'', unrecognized:[], crewName:'', rosterRange:'', flightHours:'', dayOff:'', sbYDays:'' };
+const S = { schedule:[], showOff:true, search:'', unrecognized:[], crewName:'', rosterRange:'', printDate:'', flightHours:'', dayOff:'', sbYDays:'' };
 
 // ─────────────────────────────────────────────────────────────
 // UTILS
@@ -978,7 +1261,36 @@ const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>
 //            >  ARR  ETA  FH         → multi-day arrival (next day)
 // ─────────────────────────────────────────────────────────────
 
-function hasIATAFn(s) { return /[A-Z]{3}\s+[A-Z]{3}/.test(s); }
+function hasIATAFn(s) { return /\b[A-Z]{3}\b\s+\b[A-Z]{3}\b/.test(s); }
+
+// Split a raw line into main content + remarks
+// Returns { main, remarks } — remarks is '' if none present
+function splitRemarks(raw) {
+  const idx = raw.indexOf('\t||');
+  if (idx === -1) return { main: raw, remarks: '' };
+  return { main: raw.slice(0, idx), remarks: raw.slice(idx + 3).trim() };
+}
+
+// Filter remarks: remove aircraft type tokens and empty/HTL-only strings
+const ACTYPE_RE = /^(B737|B787|B767|A320|A321|A319|A330|HTL|--|LC|SLS|LT)$/i;
+function cleanRemarks(raw) {
+  if (!raw) return '';
+  return raw.split(/\s+/)
+    .filter(t => !ACTYPE_RE.test(t))
+    .join(' ')
+    .trim();
+}
+
+// Build remarks HTML block for any activity or leg
+function remarksHtml(actOrLeg) {
+  if (!actOrLeg) return '';
+  const all = [];
+  if (actOrLeg.remarks && actOrLeg.remarks.length) all.push(...actOrLeg.remarks);
+  const uniq = [...new Set(all.map(r => r.trim()).filter(Boolean))];
+  if (!uniq.length) return '';
+  const tags = uniq.map(r => `<span class="card-remarks-tag">${esc(r)}</span>`).join('');
+  return `<div class="card-remarks"><span class="card-remarks-label">Note</span>${tags}</div>`;
+}
 
 // Returns +1 if arrival time is less than departure (crossed midnight), else 0
 function nightOffset(dep, arr) {
@@ -1000,11 +1312,13 @@ function parseNeosRoster(text) {
   const unrecognized = [];
 
   // Meta extraction
-  let crewName = '', rosterRange = '';
+  let crewName = '', rosterRange = '', printDate = '';
   const nm = text.match(/A\/V\s+[RC]\s+([A-Z][A-Z\s]+?)\s{3,}/);
   if (nm) crewName = nm[1].trim().replace(/\s+/g,' ');
   const rm = text.match(/From\s+(\d{2}\/\d{2}\/\d{4})\s+to\s+(\d{2}\/\d{2}\/\d{4})/i);
   if (rm) rosterRange = `${rm[1]} → ${rm[2]}`;
+  const pdM = text.match(/Print Date\/Time:\s*([\d\/]+)\s*-\s*([\d:]+)/i);
+  if (pdM) printDate = `${pdM[1]} ${pdM[2]}`;
   let flightHours = '', dayOff = '', sbYDays = '';
   const fhM = text.match(/Flight Hours from[^\n]*?([\d]+\.[\d]+)\s+Holidays/i);
   if (fhM) flightHours = fhM[1];
@@ -1041,6 +1355,7 @@ function parseNeosRoster(text) {
   let openOvernightLeg = null; // { legRef, sourceDayIso }
   let prevRaw = ''; // track previous line for lone "DH" lookahead
   let lastPendingCI = null; // persists after pendingCI is cleared, for lone-DH case
+  let pendingTraining = null; // training sessions that arrived before their date line
 
   const flushDay = () => {
     if (curDay && curDay.activities.length > 0) schedule.push(curDay);
@@ -1049,12 +1364,10 @@ function parseNeosRoster(text) {
   const newDay = iso => {
     flushDay();
     curDate = iso; pendingCI = null; lastPendingCI = null;
-    curDay = { dateIso: iso, weekdayLabel: isoWD(iso), activities: [] };
-    // Apply any stand-by that arrived before its date line (pdf.js ordering issue)
-    if (pendingSby) {
-      curDay.activities.push(pendingSby);
-      pendingSby = null;
-    }
+    curDay = { dateIso: iso, weekdayLabel: isoWD(iso), activities: [], remarks: [] };
+    // Apply any pending activities that arrived before their date line (pdf.js ordering)
+    if (pendingSby) { curDay.activities.push(pendingSby); pendingSby = null; }
+    if (pendingTraining) { curDay.activities.push(pendingTraining); pendingTraining = null; }
   };
 
   const addLeg = leg => {
@@ -1064,9 +1377,10 @@ function parseNeosRoster(text) {
   };
 
   for (let i = 0; i < lines.length; i++) {
-    const raw = lines[i];
+    const rawFull = lines[i];
+    const { main: raw, remarks: lineRemarks } = splitRemarks(rawFull);
     const trimmed = raw.trim();
-    if (i > 0) prevRaw = lines[i - 1]; // always track previous line
+    if (i > 0) prevRaw = splitRemarks(lines[i - 1]).main; // always track previous line (main content only)
     if (!trimmed) continue;
 
     // ── SKIP: header rows and noise
@@ -1101,29 +1415,52 @@ function parseNeosRoster(text) {
 
       if (/^OFF$/i.test(duty)) {
         pendingSby = null;
-        curDay.activities.push({ type: 'OFF' }); continue;
+        curDay.activities.push({ type: 'OFF' }); if(lineRemarks){const _r=cleanRemarks(lineRemarks);if(_r){const _l=curDay.activities[curDay.activities.length-1];if(_l&&!_l.remarks)_l.remarks=[];if(_l&&!_l.remarks.includes(_r))_l.remarks.push(_r);}} continue;
       }
       if (/^-\s*OFF\(R\)$/i.test(duty) || /^OFF\(R\)$/i.test(duty)) {
         pendingSby = null;
-        curDay.activities.push({ type: 'OFF_R' }); continue;
+        curDay.activities.push({ type: 'OFF_R' }); if(lineRemarks){const _r=cleanRemarks(lineRemarks);if(_r){const _l=curDay.activities[curDay.activities.length-1];if(_l&&!_l.remarks)_l.remarks=[];if(_l&&!_l.remarks.includes(_r))_l.remarks.push(_r);}} continue;
       }
       if (/^Holidays$/i.test(duty)) {
         pendingSby = null;
-        curDay.activities.push({ type: 'HOL' }); continue;
+        curDay.activities.push({ type: 'HOL' }); if(lineRemarks){const _r=cleanRemarks(lineRemarks);if(_r){const _l=curDay.activities[curDay.activities.length-1];if(_l&&!_l.remarks)_l.remarks=[];if(_l&&!_l.remarks.includes(_r))_l.remarks.push(_r);}} continue;
       }
       if (/^LAYOVER/i.test(duty)) {
-        curDay.activities.push({ type: 'LAYOVER' }); continue;
+        curDay.activities.push({ type: 'LAYOVER' }); if(lineRemarks){const _r=cleanRemarks(lineRemarks);if(_r){const _l=curDay.activities[curDay.activities.length-1];if(_l&&!_l.remarks)_l.remarks=[];if(_l&&!_l.remarks.includes(_r))_l.remarks.push(_r);}} continue;
       }
       if (/^---+$/.test(duty)) {
-        curDay.activities.push({ type: 'REST' }); continue;
+        curDay.activities.push({ type: 'REST' }); if(lineRemarks){const _r=cleanRemarks(lineRemarks);if(_r){const _l=curDay.activities[curDay.activities.length-1];if(_l&&!_l.remarks)_l.remarks=[];if(_l&&!_l.remarks.includes(_r))_l.remarks.push(_r);}} continue;
       }
-      // Stand-by
-      const sbyM = duty.match(/Stand-by\s+(\d{1,2}:\d{2})\s*[-–]\s*(\d{1,2}:\d{2})/i);
-      if (sbyM) {
-        pendingSby = null; // clear any buffered sby — this day has its own
+      // Stand-by  — three forms:
+      //   A) "Stand-by HH:MM - HH:MM"  (same day, complete)
+      //   B) "Stand-by HH:MM >>"        (starts today, ends next day)
+      //   C) "Stand-by >> HH:MM"        (continuation from prev day)
+      const sbyFull = duty.match(/Stand-by\s+(\d{1,2}:\d{2})\s*[-–]\s*(\d{1,2}:\d{2})/i);
+      if (sbyFull) {
+        pendingSby = null;
         curDay.activities.push({
           type:'SBY', label:'Home Stand-by',
-          startUtc: parseTime(sbyM[1]), endUtc: parseTime(sbyM[2])
+          startUtc: parseTime(sbyFull[1]), endUtc: parseTime(sbyFull[2])
+        }); continue;
+      }
+      // Form B: open SBY starting today
+      const sbyOpenM = duty.match(/Stand-by\s+(\d{1,2}:\d{2})\s*(?:>>|&gt;&gt;)/i)
+                    || raw.match(/Stand-by\s+(\d{1,2}:\d{2})\s*(?:>>|&gt;&gt;)/i);
+      if (sbyOpenM) {
+        pendingSby = null;
+        curDay.activities.push({
+          type:'SBY', label:'Home Stand-by',
+          startUtc: parseTime(sbyOpenM[1]), endUtc: null, openEnd: true
+        }); continue;
+      }
+      // Form C: SBY continuation ending today
+      const sbyCont = duty.match(/Stand-by\s*(?:>>|&gt;&gt;)\s*(\d{1,2}:\d{2})/i)
+                   || raw.match(/Stand-by\s*(?:>>|&gt;&gt;)\s*(\d{1,2}:\d{2})/i);
+      if (sbyCont) {
+        pendingSby = null;
+        curDay.activities.push({
+          type:'SBY', label:'Home Stand-by',
+          startUtc: null, endUtc: parseTime(sbyCont[1]), openStart: true
         }); continue;
       }
       // Dotted = check-in on same line, possibly followed by overnight arrival
@@ -1150,7 +1487,6 @@ function parseNeosRoster(text) {
       // Training / office duty on date line
       // duty may be "EST" alone, or "EST 08:00 12:00 Aula 4" (all in one token from pdf.js)
       if (/^[A-Z]/.test(duty) && !hasIATAFn(raw)) {
-        // Try to extract times from duty itself first, then from full raw line
         const dutyTimeM = duty.match(/^(.+?)\s+(\d{1,2}:\d{2})\s+(\d{1,2}:\d{2})\s*(.*)?$/);
         const rawTimeM  = !dutyTimeM && raw.match(/(\d{1,2}:\d{2})\s+(\d{1,2}:\d{2})/);
         if (dutyTimeM || rawTimeM) {
@@ -1165,9 +1501,16 @@ function parseNeosRoster(text) {
             const locM = raw.match(/\d{1,2}:\d{2}\s+\d{1,2}:\d{2}\s+([\w][\w\s\d]*)$/);
             loc = locM ? locM[1].trim() : '';
           }
-          let trn = curDay.activities.find(a => a.type === 'TRAINING');
-          if (!trn) { trn = { type:'TRAINING', location: loc, sessions:[] }; curDay.activities.push(trn); }
-          trn.sessions.push({ name: sessionName, start: t1, end: t2, loc });
+          // Merge with pendingTraining sessions if any (they belong to this same day)
+          if (pendingTraining) {
+            pendingTraining.sessions.push({ name: sessionName, start: t1, end: t2, loc });
+            curDay.activities.push(pendingTraining);
+            pendingTraining = null;
+          } else {
+            let trn = curDay.activities.find(a => a.type === 'TRAINING');
+            if (!trn) { trn = { type:'TRAINING', location: loc, sessions:[] }; curDay.activities.push(trn); }
+            trn.sessions.push({ name: sessionName, start: t1, end: t2, loc });
+          }
           continue;
         }
       }
@@ -1200,8 +1543,12 @@ function parseNeosRoster(text) {
         else if (/^HOLIDAYS$/i.test(dtype)) curDay.activities.push({ type:'HOL' });
         else if (dtype === 'LAYOVER') curDay.activities.push({ type:'LAYOVER' });
         else if (/stand-by/i.test(contDateM[3])) {
-          const sbM2 = trimmed.match(/Stand-by\s+(\d{1,2}:\d{2})\s*[-–]\s*(\d{1,2}:\d{2})/i);
-          if (sbM2) curDay.activities.push({ type:'SBY', label:'Home Stand-by', startUtc:parseTime(sbM2[1]), endUtc:parseTime(sbM2[2]) });
+          const sbM2full = trimmed.match(/Stand-by\s+(\d{1,2}:\d{2})\s*[-–]\s*(\d{1,2}:\d{2})/i);
+          const sbM2open = !sbM2full && trimmed.match(/Stand-by\s+(\d{1,2}:\d{2})\s*(?:>>|&gt;&gt;)/i);
+          const sbM2cont = !sbM2full && !sbM2open && trimmed.match(/Stand-by\s*(?:>>|&gt;&gt;)\s*(\d{1,2}:\d{2})/i);
+          if (sbM2full) curDay.activities.push({ type:'SBY', label:'Home Stand-by', startUtc:parseTime(sbM2full[1]), endUtc:parseTime(sbM2full[2]) });
+          else if (sbM2open) curDay.activities.push({ type:'SBY', label:'Home Stand-by', startUtc:parseTime(sbM2open[1]), endUtc:null, openEnd:true });
+          else if (sbM2cont) curDay.activities.push({ type:'SBY', label:'Home Stand-by', startUtc:null, endUtc:parseTime(sbM2cont[1]), openStart:true });
         }
         continue;
       }
@@ -1218,14 +1565,24 @@ function parseNeosRoster(text) {
 
     // Stand-by line without date prefix: save as pending — will be applied to the NEXT day
     // (pdf.js sometimes emits the duty text before the date line for the same row)
-    const sbyNaked = !trimmed.match(/^\d{2}\/\d{2}\/\d{4}/)
-      && trimmed.match(/^Stand-by\s+(\d{1,2}:\d{2})\s*[-–]\s*(\d{1,2}:\d{2})/i);
-    if (sbyNaked) {
-      // If next line will be a new date, pendingSby will be applied there.
-      // If curDay has no SBY yet AND no subsequent date arrives, add it here as fallback.
-      pendingSby = { type:'SBY', label:'Home Stand-by',
-        startUtc:parseTime(sbyNaked[1]), endUtc:parseTime(sbyNaked[2]) };
-      continue;
+    if (!trimmed.match(/^\d{2}\/\d{2}\/\d{4}/)) {
+      const sbyNakedFull  = trimmed.match(/^Stand-by\s+(\d{1,2}:\d{2})\s*[-–]\s*(\d{1,2}:\d{2})/i);
+      const sbyNakedOpen  = !sbyNakedFull && trimmed.match(/^Stand-by\s+(\d{1,2}:\d{2})\s*(?:>>|&gt;&gt;)/i);
+      const sbyNakedCont  = !sbyNakedFull && !sbyNakedOpen && trimmed.match(/^Stand-by\s*(?:>>|&gt;&gt;)\s*(\d{1,2}:\d{2})/i);
+      if (sbyNakedFull) {
+        pendingSby = { type:'SBY', label:'Home Stand-by', startUtc:parseTime(sbyNakedFull[1]), endUtc:parseTime(sbyNakedFull[2]) };
+        continue;
+      }
+      if (sbyNakedOpen) {
+        // Buffer — pdf.js emitted this before the date line, belongs to the NEXT day
+        pendingSby = { type:'SBY', label:'Home Stand-by', startUtc:parseTime(sbyNakedOpen[1]), endUtc:null, openEnd:true };
+        continue;
+      }
+      if (sbyNakedCont) {
+        // Continuation from previous day — belongs to curDay
+        if (curDay) curDay.activities.push({ type:'SBY', label:'Home Stand-by', startUtc:null, endUtc:parseTime(sbyNakedCont[1]), openStart:true });
+        continue;
+      }
     }
 
     // Lone "DH" line — re-parse previous line as DH
@@ -1263,24 +1620,45 @@ function parseNeosRoster(text) {
 
     // Training continuation: session name + two HH:MM + optional location (no date prefix, no IATA)
     if (curDay && /^[A-Z]/.test(trimmed) && !hasIATAFn(trimmed)) {
-      // Accept both "NAME  08:00  12:00  Loc" and "NAME 08:00 12:00" (single space from pdf.js)
       const nameM = trimmed.match(/^(.+?)\s{1,}(\d{1,2}:\d{2})\s+(\d{1,2}:\d{2})\s*(.*)?$/);
       if (nameM) {
         const loc = (nameM[4]||'').trim().replace(/^HTL\s*/i,'');
-        let trn = curDay.activities.find(a => a.type === 'TRAINING');
-        if (!trn) { trn = { type:'TRAINING', location: loc, sessions:[] }; curDay.activities.push(trn); }
-        trn.sessions.push({ name: nameM[1].trim(), start: parseTime(nameM[2]), end: parseTime(nameM[3]), loc });
+        const existingTrn = curDay.activities.find(a => a.type === 'TRAINING');
+        if (existingTrn) {
+          // curDay already has a TRAINING activity — this is a same-day continuation
+          existingTrn.sessions.push({ name: nameM[1].trim(), start: parseTime(nameM[2]), end: parseTime(nameM[3]), loc });
+        } else if (curDay.activities.length === 0) {
+          // curDay has no activities yet — this training line likely belongs to the NEXT day
+          // (pdf.js Y-bucket: training row sits just above its date row)
+          if (!pendingTraining) pendingTraining = { type:'TRAINING', location: loc, sessions:[] };
+          pendingTraining.sessions.push({ name: nameM[1].trim(), start: parseTime(nameM[2]), end: parseTime(nameM[3]), loc });
+        } else {
+          // curDay has activities — this training belongs to the current day
+          const newTrn = { type:'TRAINING', location: loc, sessions: [{ name: nameM[1].trim(), start: parseTime(nameM[2]), end: parseTime(nameM[3]), loc }] };
+          curDay.activities.push(newTrn);
+        }
         continue;
       }
     }
 
     { const ref = {leg: openOvernightLeg}; parseCont(raw, curDay, pendingCI, addLeg, unrecognized, ref, curDate); openOvernightLeg = ref.leg; }
     pendingCI = null;
+    // Attach remarks to the last added activity on curDay
+    if (lineRemarks && curDay) {
+      const r = cleanRemarks(lineRemarks);
+      if (r) {
+        const last = curDay.activities[curDay.activities.length - 1];
+        if (last) {
+          if (!last.remarks) last.remarks = [];
+          if (!last.remarks.includes(r)) last.remarks.push(r);
+        }
+      }
+    }
   }
 
   flushDay();
   schedule.sort((a,b) => a.dateIso.localeCompare(b.dateIso));
-  return { schedule, unrecognized, crewName, rosterRange, flightHours, dayOff, sbYDays };
+  return { schedule, unrecognized, crewName, rosterRange, printDate, flightHours, dayOff, sbYDays };
 }
 
 // ── Parse a continuation (non-date) line
@@ -1424,11 +1802,18 @@ async function extractText(file) {
     // pdf.js uses native PDF coords: Y=0 at bottom, increases upward → higher Y = earlier in document
     const sortedYs = Object.keys(buckets).map(Number).sort((a, b) => b - a);
 
-    // Step 4: for each row, sort items left→right and join with single spaces
+    // Step 4: for each row, sort items left→right
+    // Split at X≈450: left = main content, right = remarks column
+    const REMARKS_X = 435;
     const pageLines = sortedYs.map(y => {
       const items = buckets[y].sort((a, b) => a.x - b.x);
-      return items.map(it => it.str).join(' ');
-    });
+      const main    = items.filter(it => it.x <  REMARKS_X).map(it => it.str).join(' ');
+      const remarks = items.filter(it => it.x >= REMARKS_X).map(it => it.str).join(' ').trim();
+      if (remarks && remarks !== 'Hotel Remarks' && remarks !== 'Remarks') {
+        return main + (main ? '\t||' : '') + remarks;
+      }
+      return main;
+    }).filter(l => l.trim());
 
     pages.push(pageLines.join('\n'));
   }
@@ -1459,14 +1844,19 @@ async function processPDF(file) {
     const _debugLines = text.split('\n').filter(l => l.trim());
     console.log('=== ROSTER LINES (' + _debugLines.length + ') ===');
     _debugLines.forEach((l,i) => console.log(i, JSON.stringify(l)));
-    const { schedule, unrecognized, crewName, rosterRange, flightHours, dayOff, sbYDays } = parseNeosRoster(text);
+    const { schedule, unrecognized, crewName, rosterRange, printDate, flightHours, dayOff, sbYDays } = parseNeosRoster(text);
     console.log('=== SCHEDULE ===', schedule.map(d => d.dateIso + ' ' + d.activities.map(a=>a.type).join(',')));
     if (schedule.length === 0) {
       hideLoading();
-      alert('Nessun dato riconosciuto nel PDF.\n\nAssicurati che sia un NEOS Individual Plan con testo selezionabile.');
+      alert('Nessun dato riconosciuto nel PDF.\n\nAssicurati che sia un Individual Plan con testo selezionabile.');
       return;
     }
-    Object.assign(S, { schedule, unrecognized, crewName, rosterRange, flightHours, dayOff, sbYDays });
+    Object.assign(S, { schedule, unrecognized, crewName, rosterRange, printDate, flightHours, dayOff, sbYDays });
+    // Persist for next session
+    try {
+      localStorage.setItem('crewroster_text', text);
+      localStorage.setItem('crewroster_filename', file?.name || '');
+    } catch(e) { /* storage full or unavailable */ }
     showTimeline();
   } catch (err) {
     hideLoading();
@@ -1503,8 +1893,12 @@ function renderSchedule() {
     document.getElementById('statSBY').textContent = S.sbYDays     || '—';
     document.getElementById('headerStats').style.display = 'flex';
   }
-  document.getElementById('headerMeta').textContent = 'NEOS INDIVIDUAL PLAN · UTC';
+  document.getElementById('headerMeta').textContent = 'INDIVIDUAL PLAN · UTC';
   document.getElementById('headerRange').textContent = S.rosterRange;
+  if (S.printDate) {
+    document.getElementById('headerLastUpdateVal').textContent = S.printDate;
+    document.getElementById('headerLastUpdate').style.display = 'block';
+  }
 
   // ── Compute turno spans
   // A turno is: FLIGHT day → ≥1 LAYOVER days → FLIGHT day
@@ -1580,9 +1974,9 @@ function renderAct(act) {
     case 'FLIGHT':  return renderFlight(act);
     case 'SBY':     return renderSby(act);
     case 'TRAINING': return renderTraining(act);
-    case 'OFF':     return renderOff();
-    case 'OFF_R':   return renderOffR();
-    case 'HOL':     return renderHol();
+    case 'OFF':     return renderOff(act);
+    case 'OFF_R':   return renderOffR(act);
+    case 'HOL':     return renderHol(act);
     case 'REST':    return renderRest();
     case 'LAYOVER': return renderLayover();
     case 'DH':      return renderDH(act);
@@ -1644,13 +2038,15 @@ function renderFlight(act) {
           '</div>' +
         '</div>' +
       '</div>';
+    const fr = remarksHtml(leg);
+    if (fr) card.insertAdjacentHTML('beforeend', fr);
     frag.appendChild(card);
   }
   return frag;
 }
 
 // ── OFF RICHIESTO
-function renderOffR() {
+function renderOffR(act) {
   const c = document.createElement('div');
   c.className = 'card-off-dark';
   c.innerHTML =
@@ -1658,11 +2054,13 @@ function renderOffR() {
       '<div class="off-code">OFF</div>' +
       '<div class="off-label">RICHIESTO</div>' +
     '</div>';
+  const r = remarksHtml(act);
+  if (r) c.insertAdjacentHTML('beforeend', r);
   return c;
 }
 
 // ── FERIE
-function renderHol() {
+function renderHol(act) {
   const c=document.createElement('div'); c.className='card card-hol';
   c.innerHTML=`
     <div class="card-bar bar-hol"></div>
@@ -1673,6 +2071,8 @@ function renderHol() {
         <div style="font-size:10px;font-weight:600;letter-spacing:1px;color:#6EE7B7;margin-top:2px">HOLIDAYS</div>
       </div>
     </div>`;
+  const r = remarksHtml(act);
+  if (r) c.insertAdjacentHTML('beforeend', r);
   return c;
 }
 
@@ -1694,30 +2094,49 @@ function renderTraining(act) {
       (act.location ? '<div class="trn-sub">' + esc(act.location) + '</div>' : '') +
     '</div>' +
     '<div class="trn-right">' + itemsHtml + '</div>';
+  const tr = remarksHtml(act);
+  if (tr) c.insertAdjacentHTML('beforeend', tr);
   return c;
 }
 
 // ── SBY
 function renderSby(act) {
   const c = document.createElement('div'); c.className='card-sby-dark';
+  // Build time display depending on open/close variants
+  let timeHtml;
+  if (act.openEnd) {
+    // Starts today, ends tomorrow: "18:00 →"
+    timeHtml =
+      '<span class="sby-time">' + act.startUtc + '</span>' +
+      '<span class="sby-sep">→</span>' +
+      '<span class="sby-time sby-overflow">+1</span>';
+  } else if (act.openStart) {
+    // Continuation from yesterday: "→ 04:00"
+    timeHtml =
+      '<span class="sby-time sby-overflow">←</span>' +
+      '<span class="sby-sep"></span>' +
+      '<span class="sby-time">' + act.endUtc + '</span>';
+  } else {
+    timeHtml =
+      '<span class="sby-time">' + (act.startUtc||'—') + '</span>' +
+      '<span class="sby-sep">–</span>' +
+      '<span class="sby-time">' + (act.endUtc||'—') + '</span>';
+  }
   c.innerHTML =
     '<div class="sby-left">' +
       '<div class="sby-code">SBY</div>' +
       '<div class="sby-label">STANDBY</div>' +
     '</div>' +
     '<div class="sby-right">' +
-      '<div class="sby-times">' +
-        '<span class="sby-time">' + (act.startUtc||'—') + '</span>' +
-        '<span class="sby-sep">–</span>' +
-        '<span class="sby-time">' + (act.endUtc||'—') + '</span>' +
-        '<span class="sby-utc">UTC</span>' +
-      '</div>' +
+      '<div class="sby-times">' + timeHtml + '<span class="sby-utc">UTC</span></div>' +
     '</div>';
+  const sr = remarksHtml(act);
+  if (sr) c.insertAdjacentHTML('beforeend', sr);
   return c;
 }
 
 // ── OFF
-function renderOff() {
+function renderOff(act) {
   const c = document.createElement('div');
   c.className = 'card-off-dark';
   c.innerHTML =
@@ -1725,6 +2144,8 @@ function renderOff() {
       '<div class="off-code">OFF</div>' +
       '<div class="off-label">GIORNO LIBERO</div>' +
     '</div>';
+  const r = remarksHtml(act);
+  if (r) c.insertAdjacentHTML('beforeend', r);
   return c;
 }
 
@@ -1798,6 +2219,8 @@ function renderDH(act) {
         '</div>' +
       '</div>' +
     '</div>';
+  const dr = remarksHtml(act);
+  if (dr) c.insertAdjacentHTML('beforeend', dr);
   return c;
 }
 
@@ -1844,6 +2267,53 @@ function showTimeline() {
   document.getElementById('timeline').insertAdjacentElement('beforebegin',fil);
 
   renderSchedule();
+  scrollToToday(false);
+}
+
+function scrollToToday(animated) {
+  const todayIso = new Date().toISOString().slice(0, 10);
+  const groups = document.querySelectorAll('.day-group[data-date]');
+  if (!groups.length) return;
+  const dates = [...groups].map(g => g.dataset.date).sort();
+  const rosterStart = dates[0], rosterEnd = dates[dates.length - 1];
+  let targetDate;
+  if (todayIso >= rosterStart && todayIso <= rosterEnd) {
+    targetDate = dates.find(d => d >= todayIso) || rosterStart;
+  } else {
+    targetDate = rosterStart;
+  }
+  const target = document.querySelector(`.day-group[data-date="${targetDate}"]`);
+  if (!target) return;
+
+  const doScroll = () => {
+    const headerH = document.querySelector('.header')?.offsetHeight || 70;
+    const dest = target.getBoundingClientRect().top + window.scrollY - headerH - 12;
+
+    if (animated === false) {
+      window.scrollTo({ top: dest, behavior: 'instant' });
+      return;
+    }
+
+    // Custom easing: ease-out-expo — fast start, decelerates smoothly to stop
+    const start = window.scrollY;
+    const delta = dest - start;
+    const duration = Math.min(900, Math.max(300, Math.abs(delta) * 0.4));
+    let startTime = null;
+
+    const easeOutExpo = t => t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
+
+    const step = ts => {
+      if (!startTime) startTime = ts;
+      const elapsed = ts - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      window.scrollTo(0, start + delta * easeOutExpo(progress));
+      if (progress < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  };
+
+  // Initial load: instant; FAB click: animated
+  if (animated === false) { setTimeout(doScroll, 50); } else { doScroll(); }
 }
 
 function toggleOffDays() {
@@ -1863,6 +2333,24 @@ const rmEl=id=>{const e=document.getElementById(id);if(e)e.remove();};
 // ─────────────────────────────────────────────────────────────
 // DRAG & DROP
 // ─────────────────────────────────────────────────────────────
+// ── Restore last roster on startup
+(async () => {
+  try {
+    const saved = localStorage.getItem('crewroster_text');
+    if (saved && saved.trim().length > 20) {
+      showLoading();
+      const { schedule, unrecognized, crewName, rosterRange, printDate, flightHours, dayOff, sbYDays } = parseNeosRoster(saved);
+      if (schedule.length > 0) {
+        window._lastRosterText = saved;
+        Object.assign(S, { schedule, unrecognized, crewName, rosterRange, printDate, flightHours, dayOff, sbYDays });
+        showTimeline();
+        return;
+      }
+    }
+  } catch(e) { /* ignore restore errors */ }
+  hideLoading();
+})();
+
 const uz=document.getElementById('uploadZone');
 uz.addEventListener('dragover',e=>{e.preventDefault();uz.classList.add('drag-over');});
 uz.addEventListener('dragleave',()=>uz.classList.remove('drag-over'));
@@ -1880,6 +2368,22 @@ window.addEventListener('scroll',()=>{
   document.getElementById('scrollProgress').style.width=
     (doc.scrollTop/(doc.scrollHeight-doc.clientHeight)*100)+'%';
   let vis=null;
+  // Show/hide FAB based on whether today's card is visible
+  const fabToday = document.getElementById('fabToday');
+  const todayIsoFab = new Date().toISOString().slice(0, 10);
+  const allDates = [...document.querySelectorAll('.day-group[data-date]')].map(g=>g.dataset.date).sort();
+  const rosterStartFab = allDates[0], rosterEndFab = allDates[allDates.length-1];
+  const targetFab = todayIsoFab >= rosterStartFab && todayIsoFab <= rosterEndFab
+    ? (allDates.find(d => d >= todayIsoFab) || rosterStartFab)
+    : rosterStartFab;
+  const todayGroup = document.querySelector(`.day-group[data-date="${targetFab}"]`);
+  if (fabToday && todayGroup) {
+    const fabObs = new IntersectionObserver(([e]) => {
+      fabToday.classList.toggle('visible', !e.isIntersecting);
+    }, { threshold: 0.1 });
+    fabObs.observe(todayGroup);
+  }
+
   document.querySelectorAll('.day-group[data-date]').forEach(g=>{
     if(g.getBoundingClientRect().top<=70) vis=g;
   });
