@@ -588,6 +588,7 @@
   }
   .cfd-ac {
     display: inline-block;
+    align-self: flex-start;
     font-size: 11px;
     font-weight: 700;
     color: #7DD3FC;
@@ -722,6 +723,14 @@
     font-size: 9px; font-weight: 700; letter-spacing: 0.6px;
     color: #34D399; background: rgba(52,211,153,0.12);
     border-radius: 4px; padding: 2px 6px;
+  }
+  .cfd-badge-ext {
+    display: inline-flex; align-items: center; gap: 3px;
+    font-size: 9px; font-weight: 800; letter-spacing: 0.8px;
+    font-family: 'Inter', sans-serif; text-transform: uppercase;
+    color: #FDE68A; background: rgba(253,230,138,0.15);
+    border: 1px solid rgba(253,230,138,0.45);
+    border-radius: 4px; padding: 2px 6px; white-space: nowrap;
   }
 
   /* TRAINING / OFFICE DUTY CARD */
@@ -1270,6 +1279,15 @@
       </div>
     </div>
     <div class="header-actions">
+      <button class="btn-icon" id="iconBtn" title="Icona app personalizzata" onclick="document.getElementById('iconInput').click()" style="position:relative;overflow:hidden;">
+        <span id="iconBtnImg" style="display:none;width:22px;height:22px;border-radius:6px;overflow:hidden;flex-shrink:0;">
+          <img id="iconPreview" style="width:100%;height:100%;object-fit:cover;display:block;" src="" alt="">
+        </span>
+        <svg id="iconBtnSvg" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+          <rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/>
+          <polyline points="21 15 16 10 5 21"/>
+        </svg>
+      </button>
       <button class="btn-icon" title="Carica nuovo roster" onclick="try{localStorage.removeItem('crewroster_text');localStorage.removeItem('crewroster_filename');}catch(e){}document.getElementById('fileInput').click()">
         <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
           <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
@@ -1280,6 +1298,7 @@
 </header>
 
 <input type="file" id="fileInput" accept=".pdf" onchange="handleFileSelect(event)">
+<input type="file" id="iconInput" accept="image/*" onchange="handleIconSelect(event)" style="display:none">
 
 <main class="main" id="mainContent">
   <div class="upload-screen" id="uploadZone">
@@ -1803,12 +1822,24 @@ function parseNeosRoster(text) {
 
     { const ref = {leg: openOvernightLeg}; parseCont(raw, curDay, pendingCI, addLeg, unrecognized, ref, curDate); openOvernightLeg = ref.leg; }
     pendingCI = null;
-    // Attach remarks to the last added activity on curDay
+    // Attach remarks and extract acType from the remarks column
     if (lineRemarks && curDay) {
-      const r = cleanRemarks(lineRemarks);
-      if (r) {
-        const last = curDay.activities[curDay.activities.length - 1];
-        if (last) {
+      const last = curDay.activities[curDay.activities.length - 1];
+      if (last) {
+        // Extract aircraft type from remarks column (B737 / B787 etc.)
+        const acRem = lineRemarks.match(/\b(B7[0-9]{2}|B767|A3[0-9]{2})\b/);
+        if (acRem) {
+          // Set on last leg of a FLIGHT activity, or on the activity itself
+          if (last.type === 'FLIGHT' && last.legs && last.legs.length) {
+            const lastLeg = last.legs[last.legs.length - 1];
+            if (!lastLeg.acType) lastLeg.acType = acRem[1];
+          } else if (!last.acType) {
+            last.acType = acRem[1];
+          }
+        }
+        // Attach non-actype text as remarks
+        const r = cleanRemarks(lineRemarks);
+        if (r) {
           if (!last.remarks) last.remarks = [];
           if (!last.remarks.includes(r)) last.remarks.push(r);
         }
@@ -1873,9 +1904,9 @@ function parseCont(raw, day, pendingCI, addLeg, unrecognized, overnightRef, date
 
   // ─ Regular flight leg: FLTN  DEP  ARR  ETD  ETA  FH
   //   e.g. "   787  MXP  JFK  12:30  21:25  08.55  HTL  R B787"
+  //   e.g. "EXT 6674  MXP  RMF  16:40  21:00  04.20"  (FDP extended)
   const leg1 = raw.match(/(\d{2,5})\s+([A-Z]{3})\s+([A-Z]{3})\s+(\d{1,2}:\d{2})\s+(\d{1,2}:\d{2})\s+([\d]{2}[.:]\d{2})/);
   if (leg1) {
-    const acM = raw.match(/\b(B7[0-9]{2})\b/);
     addLeg({
       fltn: leg1[1],
       dep: leg1[2], arr: leg1[3],
@@ -1883,21 +1914,22 @@ function parseCont(raw, day, pendingCI, addLeg, unrecognized, overnightRef, date
       blockUtc: parseTime(leg1[6].replace('.',':')),
       checkInUtc: pendingCI || null,
       hotel: /HTL/.test(raw),
-      acType: acM ? acM[1] : null,
+      acType: null, // set later from remarks column
       multiDay: false,
+      ext: /\bEXT\b/.test(raw),
     }); return;
   }
 
   // ─ Multi-day departure: "  789  JFK  >  22:00"
   const legMD1 = raw.match(/(\d{2,5})\s+([A-Z]{3})\s+>\s+(\d{1,2}:\d{2})/);
   if (legMD1) {
-    const acMD1 = raw.match(/\b(B7[0-9]{2})\b/);
     const newLeg = {
       fltn: legMD1[1], dep: legMD1[2], arr: '→',
       toUtc: parseTime(legMD1[3]), ldgUtc: null, blockUtc: null,
       checkInUtc: pendingCI || null,
       hotel: /HTL/.test(raw), multiDay: true,
-      acType: acMD1 ? acMD1[1] : null,
+      acType: null, // set later from remarks column
+      ext: /\bEXT\b/.test(raw),
     };
     addLeg(newLeg);
     if (overnightRef) overnightRef.leg = newLeg; // mark as open overnight leg
@@ -2200,6 +2232,7 @@ function renderFlight(act) {
     }
     const fltn = leg.fltn && leg.fltn !== '—' ? 'NO ' + leg.fltn : '—';
     const badges = [
+      leg.ext   ? '<span class="cfd-badge-ext">⚡ EXT</span>' : '',
       leg.hotel ? '<span class="cfd-badge-htl">🏨 HTL</span>' : '',
     ].filter(Boolean).join('');
     const card = document.createElement('div');
@@ -2263,11 +2296,11 @@ function renderFlight(act) {
       '<div style="display:flex">' +
         '<div class="cfd-left">' +
           '<div class="cfd-fltn">' + esc(fltn) + '</div>' +
-          (leg.acType ? '<span class="cfd-ac">' + esc(leg.acType) + '</span>' : '') +
           '<div class="cfd-meta">' +
             '<span class="cfd-ci-label">CI</span>' +
             '<span class="cfd-ci">' + (leg.checkInUtc || '—') + '</span>' +
           '</div>' +
+          (leg.acType ? '<span class="cfd-ac">' + esc(leg.acType) + '</span>' : '') +
           (badges ? '<div class="cfd-badges">' + badges + '</div>' : '') +
         '</div>' +
         '<div class="cfd-divider"></div>' +
@@ -2610,6 +2643,33 @@ function toggleOnlyOff() {
   document.getElementById('offChip')?.classList.toggle('active', S.showOnlyOff);
   if (S.schedule.length) renderSchedule();
 }
+function handleIconSelect(e) {
+  const file = e.target.files[0];
+  if (!file || !file.type.startsWith('image/')) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const dataUrl = ev.target.result;
+    try { localStorage.setItem('crewroster_icon', dataUrl); } catch(err) {}
+    applyIcons(dataUrl);
+    _updateIconBtn(dataUrl);
+  };
+  reader.readAsDataURL(file);
+  e.target.value = '';
+}
+function _updateIconBtn(dataUrl) {
+  const img  = document.getElementById('iconBtnImg');
+  const svg  = document.getElementById('iconBtnSvg');
+  const prev = document.getElementById('iconPreview');
+  if (!img || !svg || !prev) return;
+  if (dataUrl) {
+    prev.src = dataUrl;
+    img.style.display = 'flex';
+    svg.style.display = 'none';
+  } else {
+    img.style.display = 'none';
+    svg.style.display = '';
+  }
+}
 function handleSearch(q) { S.search=q.toLowerCase(); if(S.schedule.length) renderSchedule(); }
 function toggleDebug(hdr) {
   hdr.nextElementSibling.classList.toggle('open');
@@ -2751,49 +2811,105 @@ window.addEventListener('scroll',()=>{
 
 </script>
 <script>
-// ── Generate PWA icons dynamically (no external assets needed)
-(function() {
-  function makeIcon(size) {
-    const canvas = document.createElement('canvas');
-    canvas.width = size; canvas.height = size;
-    const ctx = canvas.getContext('2d');
-    // Background
-    const grad = ctx.createLinearGradient(0, 0, size, size);
-    grad.addColorStop(0, '#1B2A4A');
-    grad.addColorStop(1, '#0F172A');
-    ctx.fillStyle = grad;
-    const r = size * 0.22;
-    ctx.beginPath();
-    ctx.moveTo(r, 0); ctx.lineTo(size-r, 0);
-    ctx.quadraticCurveTo(size, 0, size, r);
-    ctx.lineTo(size, size-r);
-    ctx.quadraticCurveTo(size, size, size-r, size);
-    ctx.lineTo(r, size); ctx.quadraticCurveTo(0, size, 0, size-r);
-    ctx.lineTo(0, r); ctx.quadraticCurveTo(0, 0, r, 0);
-    ctx.closePath(); ctx.fill();
-    // Plane icon
-    ctx.fillStyle = '#FFFFFF';
-    ctx.font = `bold ${Math.round(size*0.45)}px sans-serif`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('✈', size/2, size/2 + size*0.03);
-    // Bottom accent line
-    ctx.fillStyle = '#2563EB';
-    const lh = size * 0.045, ly = size * 0.78, lw = size * 0.5;
-    ctx.beginPath();
-    ctx.roundRect((size-lw)/2, ly, lw, lh, lh/2);
-    ctx.fill();
-    return canvas.toDataURL('image/png');
+// ── PWA Icons: canvas-generated default, overridable with a user photo
+function makeDefaultIcon(size) {
+  const canvas = document.createElement('canvas');
+  canvas.width = size; canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  const grad = ctx.createLinearGradient(0, 0, size, size);
+  grad.addColorStop(0, '#1B2A4A');
+  grad.addColorStop(1, '#0F172A');
+  ctx.fillStyle = grad;
+  const r = size * 0.22;
+  ctx.beginPath();
+  ctx.moveTo(r,0); ctx.lineTo(size-r,0);
+  ctx.quadraticCurveTo(size,0,size,r);
+  ctx.lineTo(size,size-r);
+  ctx.quadraticCurveTo(size,size,size-r,size);
+  ctx.lineTo(r,size); ctx.quadraticCurveTo(0,size,0,size-r);
+  ctx.lineTo(0,r); ctx.quadraticCurveTo(0,0,r,0);
+  ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#FFFFFF';
+  ctx.font = `bold ${Math.round(size*0.45)}px sans-serif`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('✈', size/2, size/2 + size*0.03);
+  ctx.fillStyle = '#2563EB';
+  const lh = size*0.045, ly = size*0.78, lw = size*0.5;
+  ctx.beginPath();
+  ctx.roundRect((size-lw)/2, ly, lw, lh, lh/2);
+  ctx.fill();
+  return canvas.toDataURL('image/png');
+}
+
+function makeSquareIcon(srcDataUrl, size) {
+  // Crop image to square, apply rounded corners mask, return dataURL
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = size; canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      // Clip with rounded rect
+      const r = size * 0.22;
+      ctx.beginPath();
+      ctx.moveTo(r,0); ctx.lineTo(size-r,0);
+      ctx.quadraticCurveTo(size,0,size,r);
+      ctx.lineTo(size,size-r);
+      ctx.quadraticCurveTo(size,size,size-r,size);
+      ctx.lineTo(r,size); ctx.quadraticCurveTo(0,size,0,size-r);
+      ctx.lineTo(0,r); ctx.quadraticCurveTo(0,0,r,0);
+      ctx.closePath(); ctx.clip();
+      // Draw image centred/cropped to square
+      const s = Math.min(img.width, img.height);
+      const sx = (img.width  - s) / 2;
+      const sy = (img.height - s) / 2;
+      ctx.drawImage(img, sx, sy, s, s, 0, 0, size, size);
+      resolve(canvas.toDataURL('image/png'));
+    };
+    img.onerror = () => resolve(null);
+    img.src = srcDataUrl;
+  });
+}
+
+function applyIcons(dataUrl) {
+  // dataUrl: null = use default canvas icon; string = custom image
+  if (dataUrl) {
+    Promise.all([
+      makeSquareIcon(dataUrl, 180),
+      makeSquareIcon(dataUrl, 152),
+      makeSquareIcon(dataUrl, 120),
+      makeSquareIcon(dataUrl, 32),
+    ]).then(([i180, i152, i120, i32]) => {
+      try {
+        if (i180) document.getElementById('appleTouchIcon').href    = i180;
+        if (i152) document.getElementById('appleTouchIcon152').href = i152;
+        if (i120) document.getElementById('appleTouchIcon120').href = i120;
+        if (i32) {
+          const lnk = document.querySelector("link[rel~='icon']") || document.createElement('link');
+          lnk.rel='icon'; lnk.type='image/png'; lnk.href=i32;
+          document.head.appendChild(lnk);
+        }
+      } catch(e) {}
+    });
+  } else {
+    try {
+      document.getElementById('appleTouchIcon').href    = makeDefaultIcon(180);
+      document.getElementById('appleTouchIcon152').href = makeDefaultIcon(152);
+      document.getElementById('appleTouchIcon120').href = makeDefaultIcon(120);
+      const lnk = document.querySelector("link[rel~='icon']") || document.createElement('link');
+      lnk.rel='icon'; lnk.type='image/png'; lnk.href=makeDefaultIcon(32);
+      document.head.appendChild(lnk);
+    } catch(e) {}
   }
+}
+
+// On load: use saved custom icon if present, else default
+(function() {
   try {
-    document.getElementById('appleTouchIcon').href     = makeIcon(180);
-    document.getElementById('appleTouchIcon152').href  = makeIcon(152);
-    document.getElementById('appleTouchIcon120').href  = makeIcon(120);
-    // Favicon
-    const link = document.querySelector("link[rel~='icon']") || document.createElement('link');
-    link.rel = 'icon'; link.type = 'image/png'; link.href = makeIcon(32);
-    document.head.appendChild(link);
-  } catch(e) {}
+    const saved = localStorage.getItem('crewroster_icon');
+    applyIcons(saved || null);
+    if (saved) { setTimeout(() => _updateIconBtn(saved), 0); }
+  } catch(e) { applyIcons(null); }
 })();
 
 // ── Service Worker (offline cache)
