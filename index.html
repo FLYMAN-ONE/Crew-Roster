@@ -153,12 +153,15 @@
   .stat-pill.stat-fh  { border-color: rgba(59,130,246,0.45); }
   .stat-pill.stat-off { border-color: rgba(50,159,91,0.45); }
   .stat-pill.stat-sby { border-color: rgba(234,88,12,0.45); }
+  .stat-pill.stat-hol { border-color: rgba(124,58,237,0.45); }
   .stat-pill.stat-fh::before  { background: rgba(59,130,246,0.7); }
   .stat-pill.stat-off::before { background: rgba(50,159,91,0.7); }
   .stat-pill.stat-sby::before { background: rgba(234,88,12,0.7); }
+  .stat-pill.stat-hol::before { background: rgba(124,58,237,0.7); }
   .stat-pill.stat-fh  .stat-value { color: var(--accent-flight); }
   .stat-pill.stat-off .stat-value { color: var(--accent-off); }
   .stat-pill.stat-sby .stat-value { color: var(--accent-sby); }
+  .stat-pill.stat-hol .stat-value { color: var(--accent-holiday); }
   .header-actions { display: flex; gap: 8px; align-items: center; }
   .btn-icon {
     width: 34px; height: 34px;
@@ -416,6 +419,30 @@
     color: #A78BFA;
     background: rgba(167,139,250,0.12);
     border-color: rgba(167,139,250,0.22);
+  }
+  .tba-tag-lc {
+    font-family: 'Inter', sans-serif;
+    font-size: 8px; font-weight: 800; letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: #FECACA;
+    background: rgba(239,68,68,0.18);
+    border: 1px solid rgba(239,68,68,0.38);
+    border-radius: 5px;
+    padding: 2px 7px;
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+  .tba-tag-fam {
+    font-family: 'Inter', sans-serif;
+    font-size: 8px; font-weight: 800; letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: #FDE68A;
+    background: rgba(245,158,11,0.18);
+    border: 1px solid rgba(245,158,11,0.38);
+    border-radius: 5px;
+    padding: 2px 7px;
+    flex-shrink: 0;
+    white-space: nowrap;
   }
   .tba-route-seq {
     display: flex; align-items: center; flex-wrap: wrap; gap: 0;
@@ -812,7 +839,7 @@
   .b-layover { background: #ECFEFF; color: var(--accent-layover); }
   .b-hotel   { background: #FDF4FF; color: #7E22CE; margin-left: 4px; }
 
-  .bar-hol { background: #10B981; }
+  .bar-hol { background: var(--accent-holiday); }
   .card-hol { border-left: none; }
 
   /* DARK FLIGHT CARD */
@@ -1573,6 +1600,7 @@
     .stat-pill.stat-fh  { border-color: rgba(59,130,246,0.30); }
     .stat-pill.stat-off { border-color: rgba(50,159,91,0.30); }
     .stat-pill.stat-sby { border-color: rgba(234,88,12,0.30); }
+    .stat-pill.stat-hol { border-color: rgba(124,58,237,0.30); }
     /* Unrecognized panel */
     .debug-content { background: #0D1117; }
     .debug-line { color: #8B949E; border-bottom-color: #21262D; }
@@ -1606,6 +1634,10 @@
           <div class="stat-pill stat-sby">
             <span class="stat-value" id="statSBY">—</span>
             <span class="stat-label">Giorni SBY</span>
+          </div>
+          <div class="stat-pill stat-hol" id="statHolPill" style="display:none">
+            <span class="stat-value" id="statHOL">—</span>
+            <span class="stat-label">Ferie</span>
           </div>
         </div>
         <div id="iataToast" style="display:none">
@@ -1701,7 +1733,7 @@ if (typeof pdfjsLib !== 'undefined') {
 // ─────────────────────────────────────────────────────────────
 // STATE
 // ─────────────────────────────────────────────────────────────
-const S = { schedule:[], showOnlyOff:false, allExpanded:false, search:'', unrecognized:[], crewName:'', rosterRange:'', printDate:'', flightHours:'', dayOff:'', sbYDays:'' };
+const S = { schedule:[], showOnlyOff:false, allExpanded:false, search:'', unrecognized:[], crewName:'', rosterRange:'', printDate:'', flightHours:'', dayOff:'', sbYDays:'', holidays:'' };
 
 // ─────────────────────────────────────────────────────────────
 // UTILS
@@ -1779,9 +1811,15 @@ function splitRemarks(raw) {
 const ACTYPE_RE = /^(B737|B787|B767|A320|A321|A319|A330|HTL|--|LC|SLS|LT)$/i;
 function cleanRemarks(raw) {
   if (!raw) return '';
-  return raw.split(/\s+/)
+  // Remove LC + following inspector code (e.g. LC W9I-WHX or LC R2E-KUH-PIU)
+  let s = raw.replace(/\bLC\b(?:\s+[A-Z0-9]{2,6}(?:-[A-Z0-9]{2,6})*)?/g, '').trim();
+  // Remove Fam. Flt. + following inspector code
+  s = s.replace(/Fam\.?\s*Flt\.?(?:\s+[A-Z0-9]{2,3}(?:-[A-Z0-9]{2,3})+)?/gi, '').trim();
+  // Remove leftover LT, SLS tokens and actype patterns
+  return s.split(/\s+/)
     .filter(t => !ACTYPE_RE.test(t))
     .join(' ')
+    .replace(/\s{2,}/g, ' ')
     .trim();
 }
 
@@ -1790,6 +1828,11 @@ function remarksHtml(actOrLeg) {
   if (!actOrLeg) return '';
   const all = [];
   if (actOrLeg.remarks && actOrLeg.remarks.length) all.push(...actOrLeg.remarks);
+  // Append LC / Fam Flt inspector codes as synthetic remark entries
+  if (actOrLeg.lineCheckCodes && actOrLeg.lineCheckCodes.length)
+    all.push('LC ' + actOrLeg.lineCheckCodes.join(' '));
+  if (actOrLeg.famFltCodes && actOrLeg.famFltCodes.length)
+    all.push('Fam Flt ' + actOrLeg.famFltCodes.join(' '));
   const uniq = [...new Set(all.map(r => r.trim()).filter(Boolean))];
   if (!uniq.length) return '';
   const tags = uniq.map(r => `<span class="card-remarks-tag">${esc(r)}</span>`).join('');
@@ -1823,11 +1866,13 @@ function parseNeosRoster(text) {
   if (rm) rosterRange = `${rm[1]} → ${rm[2]}`;
   const pdM = text.match(/Print Date\/Time:\s*([\d\/]+)\s*-\s*([\d:]+)/i);
   if (pdM) printDate = `${pdM[1]} ${pdM[2]}`;
-  let flightHours = '', dayOff = '', sbYDays = '';
+  let flightHours = '', dayOff = '', sbYDays = '', holidays = '';
   // Collapse tab-separated remarks markers so numbers split across columns are found
   const _metaText = text.replace(/\t\|\|/g, ' ');
-  const fhM = _metaText.match(/Flight Hours from[^\n]*?([\d]+\.[\d]+)\s+Holidays/i);
+  const fhM  = _metaText.match(/Flight Hours from[^\n]*?([\d]+\.[\d]+)\s+Holidays/i);
   if (fhM) flightHours = fhM[1];
+  const holM = _metaText.match(/Holidays\s+([1-9][\d]*)/i);
+  if (holM) holidays = holM[1];
   const offM = _metaText.match(/Day OFF\s+Month\s+([\d]+)/i);
   if (offM) dayOff = offM[1];
   const sbyM2 = _metaText.match(/SBY_Days\s+([\d]+)/i);
@@ -1872,9 +1917,8 @@ function parseNeosRoster(text) {
   const newDay = iso => {
     flushDay();
     curDate = iso; pendingCI = null; lastPendingCI = null; curDayCI = null;
-    curDay = { dateIso: iso, weekdayLabel: isoWD(iso), activities: [], remarks: [] };
+    curDay = { dateIso: iso, weekdayLabel: isoWD(iso), activities: [], remarks: [], hotel: false };
     curDayHasContent = false;
-    // Apply any pending activities that arrived before their date line (pdf.js ordering)
     if (pendingSby) { curDay.activities.push(pendingSby); pendingSby = null; }
     if (pendingTraining) { curDay.activities.push(pendingTraining); pendingTraining = null; }
   };
@@ -1890,8 +1934,10 @@ function parseNeosRoster(text) {
     const rawFull = lines[i];
     const { main: raw, remarks: lineRemarks } = splitRemarks(rawFull);
     const trimmed = raw.trim();
-    if (i > 0) prevRaw = splitRemarks(lines[i - 1]).main; // always track previous line (main content only)
+    if (i > 0) prevRaw = splitRemarks(lines[i - 1]).main;
     if (!trimmed) continue;
+    // If HTL appears in this line's remarks column, mark the current day as hotel
+    if (lineRemarks && /\bHTL\b/.test(lineRemarks) && curDay) curDay.hotel = true;
 
     // ── SKIP: header rows and noise
     if (/^(DATE\s+DUTY|NEOS S\.p\.A|INDIVIDUAL PLAN|Print Date|A\/V\s)/i.test(trimmed)) continue;
@@ -2031,6 +2077,13 @@ function parseNeosRoster(text) {
         }
         continue;
       }
+      // Arrival summary lines: "MXP 23:35" or "MXP 21:50 Fam.Flt. ..." — silently skip
+      // These are PDF-generated notes showing the arrival airport+time from the previous duty.
+      if (/^[A-Z]{3}\s+\d{1,2}:\d{2}/.test(duty) && !hasIATAFn(duty)) {
+        newDay(iso); // still create the day (might have continuation lines after)
+        continue;
+      }
+
       // BUG-FIX 2: bare time (check-in) on duty column, e.g. "14/02/2026 sa 05:00"
       const bareTimeM = duty.match(/^(\d{1,2}:\d{2})(\s+HTL)?$/);
       if (bareTimeM) {
@@ -2204,20 +2257,61 @@ function parseNeosRoster(text) {
 
     { const ref = {leg: openOvernightLeg}; parseCont(raw, curDay, pendingCI, addLeg, unrecognized, ref, curDate); openOvernightLeg = ref.leg; }
     pendingCI = null;
-    // Attach remarks and extract acType from the remarks column
+    // Attach remarks and extract acType / special flags from the remarks column
     if (lineRemarks && curDay) {
       const last = curDay.activities[curDay.activities.length - 1];
       if (last) {
-        // Extract aircraft type from remarks column (B737 / B787 etc.)
+        // Extract aircraft type
         const acRem = lineRemarks.match(/\b(B7[0-9]{2}|B767|A3[0-9]{2})\b/);
         if (acRem) {
-          // Set on last leg of a FLIGHT activity, or on the activity itself
           if (last.type === 'FLIGHT' && last.legs && last.legs.length) {
             const lastLeg = last.legs[last.legs.length - 1];
             if (!lastLeg.acType) lastLeg.acType = acRem[1];
           } else if (!last.acType) {
             last.acType = acRem[1];
           }
+        }
+        // Hotel flag on DH
+        if (last.type === 'DH' && /\bHTL\b/.test(lineRemarks)) {
+          last.hotel = true;
+        }
+        // Helper: apply lineCheck / famFlt flags to last activity/leg
+        const _applyFlag = (flagName, codesName, codes) => {
+          if (last.type === 'FLIGHT' && last.legs && last.legs.length) {
+            const lastLeg = last.legs[last.legs.length - 1];
+            lastLeg[flagName] = true;
+            if (codes.length) lastLeg[codesName] = [...new Set((lastLeg[codesName]||[]).concat(codes))];
+            last[flagName] = true; // propagate to activity for banner
+          } else {
+            last[flagName] = true;
+            if (codes.length) last[codesName] = [...new Set((last[codesName]||[]).concat(codes))];
+          }
+        };
+
+        // Search both lineRemarks AND raw (main column) for LC and Fam.Flt.
+        const _src = (lineRemarks || '') + ' ' + (raw || '');
+
+        // LINE CHECK: "LC" keyword followed by inspector code
+        // Code can be: standalone token (BRT, MFM, MTV) OR hyphen-chain (W9I-WHX, R2E-KUH-PIU)
+        // Also handles compound codes like X9I-HDF-B76-MOG-HDFB76 (variable length segments)
+        if (/\bLC\b/.test(_src)) {
+          const _lcCodes = [];
+          // Match LC followed by a code: one or more alphanumeric segments separated by hyphens
+          const _lcRe = /\bLC\b\s+([A-Z0-9]{2,6}(?:-[A-Z0-9]{2,6})*)/g;
+          let _lcM;
+          while ((_lcM = _lcRe.exec(_src)) !== null) {
+            // Exclude pure aircraft types (B737, B787 etc.)
+            if (!/^B[0-9]{3}$/.test(_lcM[1])) _lcCodes.push(_lcM[1]);
+          }
+          _applyFlag('lineCheck', 'lineCheckCodes', _lcCodes);
+        }
+
+        // FAM FLT: "Fam. Flt." or "Fam Flt" followed by optional inspector code
+        const _famRe = /Fam\.?\s*Flt\.?(?:\s+([A-Z0-9]{2,3}(?:-[A-Z0-9]{2,3})+))?/i;
+        const _famM = _src.match(_famRe);
+        if (_famM) {
+          const codes = _famM[1] ? [_famM[1]] : [];
+          _applyFlag('famFlt', 'famFltCodes', codes);
         }
         // Attach non-actype text as remarks
         const r = cleanRemarks(lineRemarks);
@@ -2231,7 +2325,7 @@ function parseNeosRoster(text) {
 
   flushDay();
   schedule.sort((a,b) => a.dateIso.localeCompare(b.dateIso));
-  return { schedule, unrecognized, crewName, rosterRange, printDate, flightHours, dayOff, sbYDays };
+  return { schedule, unrecognized, crewName, rosterRange, printDate, flightHours, dayOff, sbYDays, holidays };
 }
 
 // ── Parse a continuation (non-date) line
@@ -2256,7 +2350,7 @@ function parseCont(raw, day, pendingCI, addLeg, unrecognized, overnightRef, date
     if (dh1[3]) act.remarks = [dh1[1] + ' - ' + dh1[2] + ' ' + dh1[3]];
     // Deduplicate: skip if identical DH already exists on this day
     const dupDH = day.activities.find(a => a.type==='DH' && a.dep===act.dep && a.arr===act.arr && a.etd===act.etd);
-    if (!dupDH) day.activities.push(act);
+    if (!dupDH && act.dep !== act.arr) day.activities.push(act); // skip dep===arr (placeholder)
     return; }
   }
 
@@ -2310,6 +2404,19 @@ function parseCont(raw, day, pendingCI, addLeg, unrecognized, overnightRef, date
     }); return;
   }
 
+  // ─ Flight leg without block time (e.g. "6421 DSS MXP 01:25 06:55" same-night turnaround)
+  {
+    const leg1nf = raw.match(/(\d{2,5})\s+([A-Z]{3})\s+([A-Z]{3})\s+(\d{1,2}:\d{2})\s+(\d{1,2}:\d{2})\s*$/);
+    if (leg1nf) {
+      addLeg({
+        fltn: leg1nf[1], dep: leg1nf[2], arr: leg1nf[3],
+        toUtc: parseTime(leg1nf[4]), ldgUtc: parseTime(leg1nf[5]),
+        blockUtc: null, checkInUtc: pendingCI || null,
+        hotel: /HTL/.test(raw), multiDay: false, ext: /\bEXT\b/.test(raw),
+      }); return;
+    }
+  }
+
   // ─ Multi-day departure: "  789  JFK  >  22:00"
   const legMD1 = raw.match(/(\d{2,5})\s+([A-Z]{3})\s+>\s+(\d{1,2}:\d{2})/);
   if (legMD1) {
@@ -2350,6 +2457,67 @@ function parseCont(raw, day, pendingCI, addLeg, unrecognized, overnightRef, date
       });
     }
     return;
+  }
+
+  // ─ Fam. Flt. / LC / inspector-code standalone line
+  // Helper: is a token an inspector code? (no backtracking-prone regex)
+  const _isInspCode = tok => {
+    if (!tok || /^(EXT|HTL|DH|LC|SLS|LT|SNS|SPV|EJU|NOS)$/i.test(tok)) return false;
+    if (/^[AB][0-9]{3}$/.test(tok)) return false; // B737, B787 etc.
+    if (/^[A-Z]{3}$/.test(tok)) return false;      // pure 3-letter tokens/IATAs
+    if (/^[A-Z0-9]{2,8}(?:-[A-Z0-9]{2,8})+$/.test(tok)) return true; // hyphen chain
+    if (/^(?=[A-Z0-9]*[0-9])(?=[A-Z0-9]*[A-Z])[A-Z0-9]{4,}$/.test(tok)) return true; // mixed alnum ≥4
+    return false;
+  };
+
+  // Attach flag+codes to last leg/activity
+  const _attachFlag = (flagName, codesName, codes) => {
+    const last = day.activities[day.activities.length - 1];
+    if (!last) return;
+    const target = (last.type === 'FLIGHT' && last.legs && last.legs.length)
+      ? last.legs[last.legs.length - 1] : last;
+    target[flagName] = true;
+    if (last.type === 'FLIGHT') last[flagName] = true;
+    if (codes.length) target[codesName] = [...new Set((target[codesName]||[]).concat(codes))];
+  };
+
+  // "Fam. Flt." — use simple includes check first to avoid backtracking
+  if (/Fam\.?\s*Flt/i.test(t)) {
+    const _famCode = t.match(/Fam\.?\s*Flt\.?\s+([A-Z0-9]{2,8}(?:[-+]\s*[A-Z0-9]{2,8})*)/i);
+    const rawCode = _famCode ? _famCode[1].replace(/\s*\+\s*/g, '-') : '';
+    _attachFlag('famFlt', 'famFltCodes', rawCode ? [rawCode] : []);
+    return;
+  }
+
+  // "LC [code]" standalone
+  if (/^LC/.test(t)) {
+    const _lcCode = t.match(/^LC\s+([A-Z0-9]{2,8}(?:-[A-Z0-9]{2,8})*)/);
+    const codes = _lcCode && !/^B[0-9]{3}$/.test(_lcCode[1]) ? [_lcCode[1]] : [];
+    _attachFlag('lineCheck', 'lineCheckCodes', codes);
+    return;
+  }
+
+  // Pure inspector code continuation (e.g. "39P-W7E-NVE", "XAJ8XT", "CXHEHQ + XAJ8XT")
+  {
+    const _parts = t.split(/\s*\+\s*/);
+    const _codes = _parts.filter(_isInspCode);
+    if (_codes.length > 0 && _codes.length === _parts.length) {
+      const last = day.activities[day.activities.length - 1];
+      if (last) {
+        const target = (last.type === 'FLIGHT' && last.legs && last.legs.length)
+          ? last.legs[last.legs.length - 1] : last;
+        if (target.famFlt || last.famFlt) {
+          target.famFltCodes = [...new Set((target.famFltCodes||[]).concat(_codes))];
+        } else if (target.lineCheck || last.lineCheck) {
+          target.lineCheckCodes = [...new Set((target.lineCheckCodes||[]).concat(_codes))];
+        } else {
+          target.famFlt = true;
+          if (last.type === 'FLIGHT') last.famFlt = true;
+          target.famFltCodes = [...new Set((target.famFltCodes||[]).concat(_codes))];
+        }
+      }
+      return;
+    }
   }
 
   // ─ Fallback
@@ -2585,14 +2753,14 @@ async function processPDF(file) {
     const _debugLines = text.split('\n').filter(l => l.trim());
     console.log('=== ROSTER LINES (' + _debugLines.length + ') ===');
     _debugLines.forEach((l,i) => console.log(i, JSON.stringify(l)));
-    const { schedule, unrecognized, crewName, rosterRange, printDate, flightHours, dayOff, sbYDays } = parseNeosRoster(text);
+    const { schedule, unrecognized, crewName, rosterRange, printDate, flightHours, dayOff, sbYDays, holidays } = parseNeosRoster(text);
     console.log('=== SCHEDULE ===', schedule.map(d => d.dateIso + ' ' + d.activities.map(a=>a.type).join(',')));
     if (schedule.length === 0) {
       hideLoading();
       alert('Nessun dato riconosciuto nel PDF.\n\nAssicurati che sia un Individual Plan con testo selezionabile.');
       return;
     }
-    Object.assign(S, { schedule, unrecognized, crewName, rosterRange, printDate, flightHours, dayOff, sbYDays });
+    Object.assign(S, { schedule, unrecognized, crewName, rosterRange, printDate, flightHours, dayOff, sbYDays, holidays });
     // Persist for next session
     try {
       localStorage.setItem('crewroster_text', text);
@@ -2701,14 +2869,14 @@ function buildTurnoBlock(td) {
     rows.map(row => {
       if (row.kind === 'office') {
         return `<div class="tba-route-row">` +
-          `<span class="tba-row-label tba-row-label-office">PRACTICAL TRAINING</span>` +
+          `<span class="tba-row-label tba-row-label-office">OFFICE DUTY</span>` +
         `</div>`;
       }
       if (row.kind === 'mixed') {
-        const firstLbl  = row.volFirst ? 'VOL' : 'DH';
+        const firstLbl  = row.volFirst ? 'VOLO' : 'DH';
         const firstCls  = row.volFirst ? '' : ' tba-row-label-dh';
         const firstChain = chainHtml(row.volFirst ? row.volItems : row.dhItems);
-        const secondLbl  = row.volFirst ? 'DH' : 'VOL';
+        const secondLbl  = row.volFirst ? 'DH' : 'VOLO';
         const secondCls  = row.volFirst ? ' tba-row-label-dh' : '';
         const secondChain = chainHtml(row.volFirst ? row.dhItems : row.volItems);
         return `<div class="tba-route-row">` +
@@ -2718,7 +2886,7 @@ function buildTurnoBlock(td) {
           `<div class="tba-route-seq">${secondChain}</div>` +
         `</div>`;
       }
-      const lbl    = row.kind === 'vol' ? 'VOL' : 'DH';
+      const lbl    = row.kind === 'vol' ? 'VOLO' : 'DH';
       const lblCls = row.kind === 'dh'  ? ' tba-row-label-dh' : '';
       return `<div class="tba-route-row">` +
         `<span class="tba-row-label${lblCls}">${lbl}</span>` +
@@ -2743,7 +2911,9 @@ function buildTurnoBlock(td) {
   header.innerHTML =
     `<div class="tba-top-row">` +
       `<span class="turno-block-label">Turno</span>` +
-      `<span class="turno-block-dates">${fmtD(td.startIso)} – ${fmtD(td.endIso)}</span>` +
+      `<span class="turno-block-dates">${td.startIso === td.endIso ? fmtD(td.startIso) : fmtD(td.startIso) + ' – ' + fmtD(td.endIso)}</span>` +
+      (td.lineCheck ? `<span class="tba-tag-lc">LINE CHECK</span>` : '') +
+      (td.famFlt    ? `<span class="tba-tag-fam">FAM FLT</span>`   : '') +
       `<div class="turno-block-pills">${pillsHtml}</div>` +
       `<svg class="turno-block-chevron" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>` +
     `</div>` +
@@ -2798,6 +2968,17 @@ function renderSchedule() {
     document.getElementById('statSBY').textContent = S.sbYDays     || '—';
     document.getElementById('headerStats').style.display = 'flex';
   }
+  // Holidays pill: show only when > 0
+  const _holPill = document.getElementById('statHolPill');
+  if (_holPill) {
+    const _holN = parseInt(S.holidays || '0', 10);
+    if (_holN > 0) {
+      document.getElementById('statHOL').textContent = S.holidays;
+      _holPill.style.display = 'flex';
+    } else {
+      _holPill.style.display = 'none';
+    }
+  }
   startCountdown();
 
   // ── Compute turno spans
@@ -2843,16 +3024,82 @@ function renderSchedule() {
     // Start only on a real duty day (FLIGHT with real dep, or DH)
     if (!isDutyDay(filtered[i])) continue;
 
-    // Walk forward: expand span across duty days, layovers, and continuation-only days
+    // Walk forward: a turno continues as long as the crew ends the day away from base.
+    //
+    // "ends away from base" means the day's LAST meaningful signal is an overnight:
+    //   - LAYOVER activity
+    //   - hotel flag on any FLIGHT leg
+    //   - hotel flag on a DH activity
+    //   - open overnight departure (arr === '→')
+    //
+    // A continuation-only day (pure arrival) does NOT count as "away" by itself —
+    // it may also have a DH that brings the crew home (e.g. 2-nov: >VRN + VRN→MXP DH).
+    // We check the non-continuation activities on that day for hotel/overnight signals.
+
+    const endsAwayFromBase = d => {
+      // Explicit LAYOVER activity = away
+      if (dayTypes(d).has('LAYOVER')) return true;
+      // Day-level hotel flag (HTL in remarks of date/dots line)
+      if (d.hotel) return true;
+      // Any flight leg with hotel flag or open overnight
+      if (d.activities.some(a =>
+        a.type === 'FLIGHT' && a.legs &&
+        a.legs.some(l => l.hotel || l.arr === '→')
+      )) return true;
+      // Any DH with hotel flag
+      if (d.activities.some(a => a.type === 'DH' && a.hotel)) return true;
+      return false;
+    };
+
     let e = i;
     while (e + 1 < filtered.length) {
+      const cur  = filtered[e];
       const next = filtered[e + 1];
-      const ndt = dayTypes(next);
-      if (ndt.has('LAYOVER') || isDutyDay(next) || isContinuationOnly(next)) {
-        e++;
-      } else {
-        break;
+      const ndt  = dayTypes(next);
+
+      // Always absorb explicit LAYOVER days (hotel nights in plan)
+      if (ndt.has('LAYOVER')) { e++; continue; }
+
+      // Always absorb continuation-only arrivals — they belong to the overnight
+      // that started on the previous day (already in span)
+      if (isContinuationOnly(next)) { e++; continue; }
+
+      // Absorb next duty day only if current day ends away from base
+      if (isDutyDay(next) && endsAwayFromBase(cur)) { e++; continue; }
+
+      // Special case: same-night turnaround — crew arrives at a non-base airport,
+      // stays overnight without hotel booking, departs again from same airport next day.
+      // Detect: last arrival of cur === first departure of next, AND it's NOT the home base.
+      if (isDutyDay(next)) {
+        const _HOME = new Set(['MXP','BGY','LIN','VRN']); // Italian bases — not "away"
+        const _lastArr = (() => {
+          for (let ai = cur.activities.length-1; ai >= 0; ai--) {
+            const a = cur.activities[ai];
+            if (a.type === 'FLIGHT' && a.legs) {
+              for (let li = a.legs.length-1; li >= 0; li--) {
+                if (a.legs[li].arr && a.legs[li].arr !== '→') return a.legs[li].arr;
+              }
+            }
+            if (a.type === 'DH' && a.arr) return a.arr;
+          }
+          return null;
+        })();
+        const _firstDep = (() => {
+          for (const a of next.activities) {
+            if (a.type === 'FLIGHT' && a.legs) {
+              for (const l of a.legs) { if (l.dep) return l.dep; }
+            }
+            if (a.type === 'DH' && a.dep) return a.dep;
+          }
+          return null;
+        })();
+        // Only merge if arriving/departing from a non-base airport
+        if (_lastArr && _firstDep && _lastArr === _firstDep && !_HOME.has(_lastArr)) {
+          e++; continue;
+        }
       }
+
+      break;
     }
 
     // The span is filtered[i..e]. Mark roles.
@@ -2948,8 +3195,23 @@ function renderSchedule() {
     if (filtered[i].dateIso === '2026-03-12' || filtered[i].dateIso === '2026-03-09') {
       console.log('TURNO', filtered[i].dateIso, '→', endIso, '_segments:', JSON.stringify(_segments));
     }
+    // Collect lineCheck / famFlt flags across all days in span
+    let spanLineCheck = false, spanFamFlt = false;
+    for (let k = i; k <= e; k++) {
+      for (const act of filtered[k].activities) {
+        if (act.lineCheck) spanLineCheck = true;
+        if (act.famFlt)    spanFamFlt    = true;
+        if (act.type === 'FLIGHT' && act.legs) {
+          for (const l of act.legs) {
+            if (l.lineCheck) spanLineCheck = true;
+            if (l.famFlt)    spanFamFlt    = true;
+          }
+        }
+      }
+    }
     turnoData.set(filtered[i].dateIso, {
       routeParts, segments: _segments, totalFH, acTypes, nLayover,
+      lineCheck: spanLineCheck, famFlt: spanFamFlt,
       startIso: filtered[i].dateIso, endIso,
       span: [i, e],
     });
@@ -3191,10 +3453,10 @@ function renderOffR(act) {
 function renderHol(act) {
   const c = document.createElement('div');
   c.className = 'card-off-dark';
-  c.style.background = '#059669';
-  c.style.boxShadow  = '0 2px 8px rgba(5,150,105,0.30)';
+  c.style.background = '#6D28D9';
+  c.style.boxShadow  = '0 2px 8px rgba(109,40,217,0.30)';
   c.innerHTML =
-    '<div class="off-left" style="background:#047857">' +
+    '<div class="off-left" style="background:#5B21B6">' +
       '<div class="off-code" style="font-size:20px">🌴 FERIE</div>' +
       '<div class="off-label">HOLIDAYS</div>' +
     '</div>';
@@ -3548,10 +3810,10 @@ const rmEl=id=>{const e=document.getElementById(id);if(e)e.remove();};
     const saved = localStorage.getItem('crewroster_text');
     if (saved && saved.trim().length > 20) {
       showLoading();
-      const { schedule, unrecognized, crewName, rosterRange, printDate, flightHours, dayOff, sbYDays } = parseNeosRoster(saved);
+      const { schedule, unrecognized, crewName, rosterRange, printDate, flightHours, dayOff, sbYDays, holidays } = parseNeosRoster(saved);
       if (schedule.length > 0) {
         window._lastRosterText = saved;
-        Object.assign(S, { schedule, unrecognized, crewName, rosterRange, printDate, flightHours, dayOff, sbYDays });
+        Object.assign(S, { schedule, unrecognized, crewName, rosterRange, printDate, flightHours, dayOff, sbYDays, holidays });
         showTimeline();
         return;
       }
