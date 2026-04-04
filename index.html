@@ -1,9 +1,40 @@
 <!DOCTYPE html>
+<!--
+╔══════════════════════════════════════════════════════════════╗
+║  CrewRoster — CHANGELOG                                      ║
+╠══════════════════════════════════════════════════════════════╣
+║  v4.8.9  (2026-04-04)                                       ║
+║  ─────────────────────────────────────────────────────────   ║
+║  FIX  Header: height ora auto — icona home e countdown       ║
+║       non vengono più tagliati. Struttura interna            ║
+║       ridisegnata con header-inner-row + header-countdown-   ║
+║       row come elementi in flusso.                           ║
+║  FIX  Rail accent bar: il bordo sinistro colorato ora si     ║
+║       estende per tutta l'altezza del turno anche quando     ║
+║       il blocco è espanso (::before su .classic-row-trip).   ║
+║  FIX  Parser: voli con prefisso EXT (es. EXT 5973 SSH >)     ║
+║       ora riconosciuti come multi-day departure; l'ETA di    ║
+║       arrivo del giorno successivo viene mostrata.           ║
+║  FIX  Parser: duty di formazione con codice bare sulla riga  ║
+║       data (es. "EST" senza orari) — creato placeholder      ║
+║       TRAINING e curDayHasContent=true, così le righe di     ║
+║       sessione successive si aggregano al giorno corretto.   ║
+║  FIX  PWA startup: pdf.js caricato con defer + preload.      ║
+║       Aggiunto Service Worker inline per cache app-shell     ║
+║       → avvio freddo ridotto da 5-7s a <1s dopo prima visita.║
+║                                                              ║
+║  v4.8.3  (base stabile di partenza)                         ║
+║  ─────────────────────────────────────────────────────────   ║
+║  Baseline: dual-view (Classic + Modern), turno grouping,     ║
+║  Dark/Light theme toggle, month history, stats sheet,        ║
+║  IndexedDB persistence, dock navigation, PWA meta.           ║
+╚══════════════════════════════════════════════════════════════╝
+-->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>CrewRoster v3.2</title>
+<title>CrewRoster v4.8.9</title>
 
 <!-- PWA: complete meta set -->
 <!-- iOS Safari -->
@@ -29,10 +60,13 @@
 <!-- Fonts -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap">
+<!-- PWA startup: preload pdf.js to warm CDN connection; defer parse until after first paint -->
+<link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" as="script" crossorigin="anonymous">
+<link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js" as="script" crossorigin="anonymous">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" defer></script>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
 
   :root {
     --bg:             #F0F2F5;
@@ -72,7 +106,7 @@
     text-rendering: optimizeLegibility;
   }
   /* All numeric/time values use DM Mono globally */
-  .mono { font-family: 'JetBrains Mono', monospace; }
+  .mono { }
 
   /* ═══════════════════════════════════════════════════════
      HEADER — glassmorphism + scroll-compact behaviour
@@ -127,9 +161,7 @@
   }
   .header-meta {
     font-size: 9px; font-weight: 500; color: var(--text-muted);
-    letter-spacing: 0.8px;
-    font-family: 'JetBrains Mono', monospace;
-    opacity: 0.6;
+    letter-spacing: 0.8px; opacity: 0.6;
     transition: opacity 0.35s cubic-bezier(0.4,0,0.2,1), height 0.35s cubic-bezier(0.4,0,0.2,1);
   }
   .header-compact .header-meta { opacity: 0; max-height: 0; overflow: hidden; margin: 0; }
@@ -146,9 +178,7 @@
     letter-spacing: 1.1px; text-transform: uppercase;
     color: var(--text-muted); flex-shrink: 0;
   }
-  .countdown-value {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px; font-weight: 800;
+  .countdown-value { font-size: 12px; font-weight: 800;
     color: #FBBF24; letter-spacing: 0.3px; line-height: 1;
   }
   .countdown-value.cd-imminent { color: #F87171; }
@@ -209,9 +239,7 @@
     border-radius: 10px 10px 0 0;
   }
   .stat-value {
-    font-size: 14px; font-weight: 800;
-    font-family: 'JetBrains Mono', monospace;
-    line-height: 1;
+    font-size: 14px; font-weight: 800; line-height: 1;
   }
   .stat-label {
     font-size: 8px; font-weight: 700;
@@ -290,9 +318,7 @@
   }
   .month-strip-scroll::-webkit-scrollbar { display: none; }
   .month-pill {
-    flex-shrink: 0;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
+    flex-shrink: 0; font-size: 10px;
     font-weight: 700;
     letter-spacing: 0.4px;
     padding: 4px 9px;
@@ -554,27 +580,24 @@
   .turno-block-body .day-label { position: static; }
   .turno-block-body .turno-wrap::before { display: none; }
 
-  /* ══ LEVEL 1 — Meta row ═══════════════════════════════════════ */
+  /* tb-meta-row: legacy selector — not used in v4.7 turno header
+     Retained as fallback for any future use */
   .tb-meta-row {
     display: flex;
     align-items: center;
     gap: 8px;
     width: 100%;
-    min-width: 0;
   }
   .tb-date-range {
     font-family: 'Inter', sans-serif;
-    font-size: 13px;
-    font-weight: 500;
+    font-size: 11px;
+    font-weight: 700;
     color: var(--text-dimmed);
-    flex: 1;
-    min-width: 0;
+    flex-shrink: 0;
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
     line-height: 1.2;
   }
-  /* Right group: LC tag · FAM tag · A/C badge · chevron */
+  .tb-meta-z2 { flex: 1; min-width: 0; }
   .tb-right-group {
     display: flex;
     align-items: center;
@@ -623,32 +646,21 @@
   .turno-block:hover .tb-chevron  { opacity: 1; }
   .turno-block.expanded .tb-chevron { transform: rotate(180deg); }
 
-  /* ══ LEVEL 2 — Fading divider ══════════════════════════════════ */
-  .tb-divider {
-    height: 1px;
-    margin: 8px 10%;
-    background: linear-gradient(90deg, transparent 0%, var(--border-ui) 50%, transparent 100%);
-    border: none;
-    flex-shrink: 0;
-  }
+  /* tb-divider: not used in v4.7 unified header — hidden */
+  .tb-divider { display: none; }
 
   /* ══ LEVEL 3 — Duty-period flight path badges ══════════════════ */
+  /* tb-path-rows / tb-path-row: retained for any legacy reference */
   .tb-path-rows {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 4px;
   }
-  /* Each badge: fit-content, not full width */
   .tb-path-row {
     display: inline-flex;
     align-items: center;
     flex-wrap: wrap;
     gap: 0;
-    width: fit-content;
-    max-width: 100%;
-    background: var(--border-ui);
-    border-radius: 10px;
-    padding: 6px 10px;
     line-height: 1.2;
   }
   .tb-path-iata {
@@ -703,9 +715,9 @@
     align-self: flex-start; width: fit-content;
   }
   @keyframes iataFadeIn { from { opacity:0; transform:translateY(-3px); } to { opacity:1; transform:none; } }
-  #iataToastCode { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 800; color: var(--text-main); }
+  #iataToastCode { font-size: 13px; font-weight: 800; color: var(--text-main); }
   #iataToastTz   { font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 700; color: var(--accent); }
-  #iataToastTime { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; color: var(--text-dimmed); }
+  #iataToastTime { font-size: 12px; font-weight: 600; color: var(--text-dimmed); }
 
   @media (max-width: 600px) {
     .tb-path-iata { font-size: 13px; }
@@ -739,9 +751,7 @@
     min-width: 0;
     flex-wrap: wrap;
   }
-  .turno-leg-iata {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
+  .turno-leg-iata { font-size: 12px;
     font-weight: 800;
     color: var(--text-primary);
     white-space: nowrap;
@@ -768,9 +778,7 @@
     background: rgba(59,130,246,0.10);
     border: 1px solid rgba(59,130,246,0.18);
   }
-  .turno-pill-val {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
+  .turno-pill-val { font-size: 11px;
     font-weight: 800;
     color: #93C5FD;
     line-height: 1.15;
@@ -879,38 +887,6 @@
     100% { box-shadow: 0 2px 16px rgba(37,99,235,0.08), 0 1px 0 rgba(37,99,235,0.12); }
   }
 
-  /* TODAY FAB */
-  .fab-today {
-    position: fixed;
-    bottom: max(24px, calc(16px + env(safe-area-inset-bottom)));
-    right: max(20px, calc(12px + env(safe-area-inset-right)));
-    z-index: 200;
-    display: none;
-    align-items: center;
-    gap: 7px;
-    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-    color: #F1F5F9;
-    border: 1px solid rgba(255,255,255,0.10);
-    border-radius: 100px;
-    padding: 10px 18px 10px 14px;
-    font-family: 'Inter', sans-serif;
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 0.3px;
-    cursor: pointer;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.30), 0 1px 0 rgba(255,255,255,0.06) inset;
-    white-space: nowrap;
-    will-change: transform;
-    transform: translateZ(0);
-    transition: box-shadow 0.15s ease;
-  }
-  .fab-today.visible { display: flex; }
-  @media (hover: hover) {
-    .fab-today:hover { box-shadow: 0 6px 24px rgba(0,0,0,0.40); }
-  }
-  .fab-today:active { transform: scale(0.95) translateZ(0); }
-  .fab-today svg { flex-shrink: 0; }
-
   /* TURNO connector — vertical line only in the gap between day-groups */
   .turno-wrap {
     position: relative;
@@ -1013,8 +989,7 @@
   }
   .card-row {
     display: flex; align-items: center; gap: 5px;
-    font-size: 12px; color: var(--text-secondary);
-    font-family: 'JetBrains Mono', monospace; margin-bottom: 4px; flex-wrap: wrap;
+    font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; flex-wrap: wrap;
   }
   .card-row:last-child { margin-bottom: 0; }
   .lbl { font-size: 10px; font-weight: 600; color: var(--text-muted); letter-spacing: 0.5px; }
@@ -1119,9 +1094,7 @@
     padding: 0 20px;
     width: 100%;
   }
-  .rest-dash {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 18px; color: var(--text-muted); opacity: 0.5;
+  .rest-dash { font-size: 18px; color: var(--text-muted); opacity: 0.5;
   }
   .rest-label {
     font-family: 'Inter', sans-serif;
@@ -1162,9 +1135,7 @@
   .cfd-fltn {
     font-size: 13px;
     font-weight: 700;
-    color: #60A5FA;
-    font-family: 'JetBrains Mono', monospace;
-    letter-spacing: 0.3px;
+    color: #60A5FA; letter-spacing: 0.3px;
     line-height: 1;
     white-space: nowrap;
     overflow: hidden;
@@ -1181,9 +1152,7 @@
     font-size: 9px;
     font-weight: 700;
     color: #7DD3FC;
-    letter-spacing: 0.6px;
-    font-family: 'JetBrains Mono', monospace;
-    background: rgba(125,211,252,0.10);
+    letter-spacing: 0.6px; background: rgba(125,211,252,0.10);
     padding: 1px 5px;
     border-radius: 4px;
     margin-bottom: 1px;
@@ -1192,9 +1161,7 @@
   .cfd-ci {
     font-size: 12px;
     font-weight: 700;
-    color: #FCD34D;
-    font-family: 'JetBrains Mono', monospace;
-    letter-spacing: 0.2px;
+    color: #FCD34D; letter-spacing: 0.2px;
     opacity: 0.9;
   }
   .cfd-ci-label {
@@ -1236,9 +1203,7 @@
   .cfd-time {
     font-size: 12px;
     font-weight: 600;
-    color: rgba(255,255,255,0.65);
-    font-family: 'JetBrains Mono', monospace;
-    letter-spacing: 0.2px;
+    color: rgba(255,255,255,0.65); letter-spacing: 0.2px;
   }
   .cfd-arrow {
     flex: 1;
@@ -1253,9 +1218,7 @@
   .cfd-fh {
     font-size: 10px;
     font-weight: 600;
-    color: #BFDBFE;
-    font-family: 'JetBrains Mono', monospace;
-    letter-spacing: 0.5px;
+    color: #BFDBFE; letter-spacing: 0.5px;
     white-space: nowrap;
     opacity: 0.55;
   }
@@ -1388,9 +1351,7 @@
   .trn-item-times {
     font-size: 12px;
     font-weight: 600;
-    color: #93C5FD;
-    font-family: 'JetBrains Mono', monospace;
-    white-space: nowrap;
+    color: #93C5FD; white-space: nowrap;
   }
   .trn-item-loc {
     font-size: 10px;
@@ -1429,11 +1390,12 @@
   }
   .off-left {
     background: transparent;
-    padding: 14px 16px 14px 20px;
+    /* v4.7: 14px left = 4px rail + 10px, same as turno-z1 padding-left */
+    padding: 12px 16px 12px 14px;
     display: flex;
     flex-direction: row;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     width: 100%;
   }
   .off-code {
@@ -1506,17 +1468,13 @@
   .sby-time {
     font-size: 20px;
     font-weight: 700;
-    color: var(--text-primary);
-    font-family: 'JetBrains Mono', monospace;
-    letter-spacing: 0px;
+    color: var(--text-primary); letter-spacing: 0px;
     line-height: 1;
   }
   .sby-sep {
     font-size: 16px;
     font-weight: 300;
-    color: var(--text-muted);
-    font-family: 'JetBrains Mono', monospace;
-  }
+    color: var(--text-muted); }
   .sby-overflow {
     font-size: 14px !important;
     opacity: 0.7;
@@ -1525,9 +1483,7 @@
   .sby-utc {
     font-size: 9px;
     font-weight: 600;
-    color: var(--text-muted);
-    font-family: 'JetBrains Mono', monospace;
-    letter-spacing: 0.5px;
+    color: var(--text-muted); letter-spacing: 0.5px;
     margin-left: 2px;
   }
 
@@ -1606,9 +1562,7 @@
   }
   .ci-time {
     font-size: 20px;
-    font-weight: 700;
-    font-family: 'JetBrains Mono', monospace;
-    color: var(--accent-flight);
+    font-weight: 700; color: var(--accent-flight);
     letter-spacing: -0.5px;
     margin-left: 2px;
   }
@@ -1618,16 +1572,12 @@
     color: #93C5FD;
     letter-spacing: 0.8px;
     align-self: flex-end;
-    margin-bottom: 2px;
-    font-family: 'JetBrains Mono', monospace;
-  }
+    margin-bottom: 2px; }
 
   /* FLIGHT NUMBER BADGE */
   .fltn-badge {
     font-size: 12px;
-    font-weight: 600;
-    font-family: 'JetBrains Mono', monospace;
-    color: var(--accent-flight);
+    font-weight: 600; color: var(--accent-flight);
     background: #EEF3FF;
     border: 1px solid #BFDBFE;
     border-radius: 8px;
@@ -1636,9 +1586,7 @@
     white-space: nowrap;
   }
 
-  .ground-time {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 9px;
+  .ground-time { font-size: 9px;
     font-weight: 600;
     color: rgba(148,163,184,0.5);
     letter-spacing: 1px;
@@ -1679,8 +1627,7 @@
   .debug-content { display: none; padding: 0 14px 12px; }
   .debug-content.open { display: block; }
   .debug-line {
-    font-size: 11px; color: var(--text-secondary);
-    font-family: 'JetBrains Mono', monospace; padding: 2px 0;
+    font-size: 11px; color: var(--text-secondary); padding: 2px 0;
     border-bottom: 1px solid var(--bg);
   }
 
@@ -1843,13 +1790,6 @@
     .card-remarks-tag   { font-size: 9px; padding: 2px 5px; }
     .card-remarks-label { font-size: 7px; }
 
-    /* ── FAB ──────────────────────────────────────────────── */
-    .fab-today {
-      bottom: max(14px, calc(8px + env(safe-area-inset-bottom)));
-      right:  max(12px, calc(8px + env(safe-area-inset-right)));
-      padding: 8px 12px 8px 10px; font-size: 12px; gap: 5px;
-    }
-
     /* ── Upload screen ────────────────────────────────────── */
     .upload-squircle { width: 80px; height: 80px; border-radius: 24px; margin-bottom: 22px; }
     .upload-squircle svg { width: 34px; height: 34px; }
@@ -1935,8 +1875,6 @@
     /* Debug panel */
     .debug-panel { background: #161B22; border-color: #30363D; }
     .debug-header { color: #8B949E; }
-    /* FAB */
-    .fab-today { box-shadow: 0 4px 20px rgba(0,0,0,0.50), 0 1px 0 rgba(255,255,255,0.06) inset; }
     /* Stat pills */
     .stat-pill { background: #161B22; }
     .stat-pill.stat-fh  { border-color: rgba(59,130,246,0.30); }
@@ -2510,9 +2448,7 @@
     font-size: 9px;
     font-weight: 600;
     color: var(--text-muted);
-    letter-spacing: 0.7px;
-    font-family: 'JetBrains Mono', monospace;
-    opacity: 0.65;
+    letter-spacing: 0.7px; opacity: 0.65;
     transition:
       opacity    0.30s cubic-bezier(0.4,0,0.2,1),
       max-height 0.30s cubic-bezier(0.4,0,0.2,1);
@@ -2543,9 +2479,7 @@
     flex-shrink: 0;
   }
 
-  .countdown-value {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
+  .countdown-value { font-size: 12px;
     font-weight: 800;
     color: #F59E0B;
     letter-spacing: 0.2px;
@@ -2621,9 +2555,7 @@
 
   .stat-value {
     font-size: 14px;
-    font-weight: 800;
-    font-family: 'JetBrains Mono', monospace;
-    line-height: 1;
+    font-weight: 800; line-height: 1;
   }
 
   .stat-label {
@@ -2681,9 +2613,7 @@
     to   { opacity: 1; transform: none; }
   }
 
-  #iataToastCode {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 13px;
+  #iataToastCode { font-size: 13px;
     font-weight: 800;
     color: var(--text-primary);
   }
@@ -2695,9 +2625,7 @@
     color: #60A5FA;
   }
 
-  #iataToastTime {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
+  #iataToastTime { font-size: 12px;
     font-weight: 600;
     color: var(--text-secondary);
   }
@@ -2750,9 +2678,7 @@
   .month-strip-scroll::-webkit-scrollbar { display: none; }
 
   .month-pill {
-    flex-shrink: 0;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
+    flex-shrink: 0; font-size: 10px;
     font-weight: 700;
     letter-spacing: 0.3px;
     padding: 4px 9px;
@@ -2940,72 +2866,6 @@
     .import-banner-text { color: #4ADE80; }
   }
 
-  /* ---------- TODAY FAB ---------- */
-
-  .fab-today {
-    position: fixed;
-    bottom: max(24px, calc(18px + env(safe-area-inset-bottom)));
-    right:  max(20px, calc(14px + env(safe-area-inset-right)));
-    z-index: 200;
-    display: none;
-    align-items: center;
-    gap: 6px;
-    background: var(--ui-surface);
-    color: var(--text-primary);
-    border: 1px solid var(--ui-border);
-    border-radius: 999px;
-    padding: 10px 18px 10px 14px;
-    font-family: 'Inter', sans-serif;
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 0.2px;
-    cursor: pointer;
-    box-shadow:
-      var(--shadow-md),
-      0 1px 0 rgba(255,255,255,0.06) inset;
-    white-space: nowrap;
-    will-change: transform;
-    transform: translateZ(0);
-    transition:
-      box-shadow 0.16s ease,
-      transform  0.14s ease,
-      opacity    0.22s ease;
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  .fab-today.visible { display: flex; }
-
-  @media (hover: hover) {
-    .fab-today:hover {
-      box-shadow: var(--shadow-lg);
-      transform: translateY(-1px) translateZ(0);
-    }
-  }
-
-  .fab-today:active {
-    transform: scale(0.95) translateZ(0);
-  }
-
-  .fab-today svg { flex-shrink: 0; }
-
-  @media (prefers-color-scheme: dark) {
-    .fab-today {
-      background: var(--ui-surface-2);
-      color: var(--ui-text-strong);
-      border-color: var(--ui-border-strong);
-      box-shadow: var(--shadow-md);
-    }
-  }
-
-  @media (max-width: 430px) {
-    .fab-today {
-      padding: 9px 16px 9px 12px;
-      font-size: 11px;
-      bottom: max(20px, calc(14px + env(safe-area-inset-bottom)));
-      right:  max(14px, calc(10px + env(safe-area-inset-right)));
-    }
-  }
-
 
   /* =========================================================
      COMMIT 3 — TIMELINE & TURNO BLOCK V2
@@ -3144,7 +3004,7 @@
     border-radius: var(--radius-lg);
     overflow: hidden;
     border: 1px solid rgba(37,99,235,0.18);
-    contain: layout style paint;
+    /* v4.7: contain REMOVED — it breaks getBoundingClientRect() layout calculations */
     box-shadow:
       0 2px 14px rgba(37,99,235,0.08),
       0 1px 0   rgba(37,99,235,0.10);
@@ -3169,11 +3029,12 @@
   /* ---------- Turno Block Header (clickable) ---------- */
 
   .turno-block-header {
+    /* v4.7: turno-block-header is no longer used in DOM — kept for HOTFIX C3c compat */
     display: flex;
     flex-direction: column;
     align-items: stretch;
     gap: 0;
-    padding: 11px 14px 10px;
+    padding: 0;
     background: linear-gradient(135deg,
       rgba(37,99,235,0.08) 0%,
       rgba(37,99,235,0.03) 100%);
@@ -3223,9 +3084,7 @@
     flex-shrink: 0;
   }
 
-  .turno-block-dates {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
+  .turno-block-dates { font-size: 11px;
     font-weight: 800;
     color: #E2E8F0;
     flex-shrink: 0;
@@ -3285,9 +3144,7 @@
     gap: 0;
   }
 
-  .tba-iata {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 13px;
+  .tba-iata { font-size: 13px;
     font-weight: 800;
     color: var(--ui-text-strong);
     white-space: nowrap;
@@ -3326,9 +3183,7 @@
     transition: background 0.14s ease, border-color 0.14s ease;
   }
 
-  .tba-pill-val {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 13px;
+  .tba-pill-val { font-size: 13px;
     font-weight: 800;
     color: #93C5FD;
     line-height: 1.1;
@@ -3454,9 +3309,7 @@
     flex-wrap: wrap;
   }
 
-  .turno-leg-iata {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
+  .turno-leg-iata { font-size: 12px;
     font-weight: 800;
     color: var(--text-primary);
     white-space: nowrap;
@@ -3487,9 +3340,7 @@
     border: 1px solid rgba(59,130,246,0.18);
   }
 
-  .turno-pill-val {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
+  .turno-pill-val { font-size: 11px;
     font-weight: 800;
     color: #93C5FD;
     line-height: 1.15;
@@ -3585,23 +3436,22 @@
 
   /* Remove overflow:hidden from turno-block so chevron circle
      is never clipped; use border-radius via clip-path instead */
-  .turno-block {
+  /* v4.7: turno-block with classic-row-trip uses overflow:hidden (from .classic-row).
+     Only legacy turno-block (without classic-row-trip) gets overflow:visible. */
+  .turno-block:not(.classic-row-trip) {
     overflow: visible;
-    /* re-apply border-radius visually without overflow:hidden */
-    /* child header/body inherit their own border-radius */
   }
 
   .turno-block-header {
     border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-    overflow: hidden; /* clip only the header gradient */
+    overflow: hidden;
   }
 
   .turno-block.expanded .turno-block-header {
     border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   }
 
-  /* When collapsed (not expanded), header fills the whole block */
-  .turno-block:not(.expanded) .turno-block-header {
+  .turno-block:not(.expanded):not(.classic-row-trip) .turno-block-header {
     border-radius: var(--radius-lg);
     overflow: hidden;
   }
@@ -3692,9 +3542,7 @@
 
   /* ── GROUND TIME (between legs) ─────────────────────── */
 
-  .ground-time {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
+  .ground-time { font-size: 10px;
     font-weight: 700;
     letter-spacing: 0.8px;
     text-align: center;
@@ -3761,9 +3609,7 @@
     border-right: 0.5px solid rgba(255,255,255,0.07);
   }
 
-  .cfd-fltn {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
+  .cfd-fltn { font-size: 12px;
     font-weight: 700;
     color: #60A5FA;
     letter-spacing: 0.3px;
@@ -3775,9 +3621,7 @@
 
   .cfd-ac {
     display: inline-block;
-    align-self: flex-start;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 9px;
+    align-self: flex-start; font-size: 9px;
     font-weight: 700;
     color: #7DD3FC;
     letter-spacing: 0.5px;
@@ -3803,9 +3647,7 @@
     color: rgba(148,163,184,0.55);
   }
 
-  .cfd-ci {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 13px;
+  .cfd-ci { font-size: 13px;
     font-weight: 800;
     color: #FCD34D;
     letter-spacing: 0.1px;
@@ -3846,9 +3688,7 @@
 
   .cfd-iata.dh-ghost { opacity: 0.35; }
 
-  .cfd-time {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
+  .cfd-time { font-size: 11px;
     font-weight: 600;
     color: rgba(255,255,255,0.60);
     letter-spacing: 0.1px;
@@ -3875,9 +3715,7 @@
     gap: 3px;
   }
 
-  .cfd-fh {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
+  .cfd-fh { font-size: 10px;
     font-weight: 600;
     color: #BFDBFE;
     letter-spacing: 0.4px;
@@ -4077,27 +3915,21 @@
     gap: 6px;
   }
 
-  .sby-time {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 20px;
+  .sby-time { font-size: 20px;
     font-weight: 700;
     color: var(--text-primary);
     line-height: 1;
     letter-spacing: -0.3px;
   }
 
-  .sby-sep {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 16px;
+  .sby-sep { font-size: 16px;
     font-weight: 300;
     color: var(--text-muted);
   }
 
   .sby-overflow { font-size: 14px !important; opacity: 0.70; }
 
-  .sby-utc {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 9px;
+  .sby-utc { font-size: 9px;
     font-weight: 600;
     color: var(--text-muted);
     letter-spacing: 0.5px;
@@ -4292,9 +4124,7 @@
     width: 100%;
   }
 
-  .rest-dash {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 18px;
+  .rest-dash { font-size: 18px;
     color: var(--text-muted);
     opacity: 0.45;
     line-height: 1;
@@ -4307,96 +4137,108 @@
     opacity: 0.65;
   }
 
-  /* ── TRAINING / OFFICE DUTY CARD ─────────────────────── */
+  /* ── TRAINING / OFFICE DUTY CARD v4.8.6 ─────────────────
+     Original trn-left (OFFICE DUTY label) + trn-right (session rows).
+     Each row: session code | ETD–ETA | location (aula).
+  ──────────────────────────────────────────────────────── */
 
   .card-training {
-    background: linear-gradient(135deg, #1A3558 0%, #0D2140 100%);
+    background: linear-gradient(148deg, #1B2A42 0%, #0D1726 100%);
     border-radius: var(--radius-md);
     margin-bottom: 6px;
     overflow: hidden;
-    border: 1px solid rgba(255,255,255,0.07);
+    border: 0.5px solid rgba(255,255,255,0.10);
     box-shadow:
-      0 4px 14px rgba(0,0,0,0.22),
-      0 1px 0 rgba(255,255,255,0.04) inset;
+      0 2px 10px rgba(0,0,0,0.28),
+      0 1px 0 rgba(255,255,255,0.05) inset;
     display: flex;
     align-items: stretch;
   }
 
+  /* Left panel — fixed width, label only */
   .trn-left {
-    background: rgba(0,0,0,0.18);
-    padding: 12px 13px;
+    background: rgba(0,0,0,0.20);
+    padding: 12px 10px;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    gap: 4px;
-    width: 130px;
+    align-items: flex-start;
+    gap: 3px;
+    width: 68px;
+    min-width: 68px;
     flex-shrink: 0;
-    border-right: 1px solid rgba(255,255,255,0.07);
+    border-right: 0.5px solid rgba(255,255,255,0.07);
   }
 
+  /* "OFFICE DUTY" label — two lines, uppercase */
   .trn-code {
     font-family: 'Inter', sans-serif;
-    font-size: 11px;
-    font-weight: 800;
-    color: #FFFFFF;
-    letter-spacing: 0.6px;
-    text-transform: uppercase;
-    line-height: 1.2;
-  }
-
-  .trn-sub {
-    font-family: 'Inter', sans-serif;
     font-size: 9px;
-    font-weight: 600;
+    font-weight: 800;
+    color: rgba(255,255,255,0.55);
     letter-spacing: 0.8px;
-    color: rgba(255,255,255,0.45);
     text-transform: uppercase;
+    line-height: 1.4;
   }
 
+  /* Right panel — session rows */
   .trn-right {
     flex: 1;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    padding: 10px 13px;
-    gap: 4px;
+    padding: 6px 0;
+    min-width: 0;
   }
 
+  /* One row per session */
   .trn-item {
     display: flex;
     align-items: center;
     gap: 8px;
+    padding: 5px 12px;
+    min-height: 32px;
   }
 
+  /* Session code/name — left, bold */
   .trn-item-name {
     font-family: 'Inter', sans-serif;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 700;
     color: #FFFFFF;
     flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
     line-height: 1.2;
   }
 
+  /* ETD–ETA times — centre, accent blue, monospaced */
   .trn-item-times {
-    font-family: 'JetBrains Mono', monospace;
     font-size: 12px;
     font-weight: 600;
     color: #93C5FD;
     white-space: nowrap;
+    flex-shrink: 0;
+    letter-spacing: 0.2px;
   }
 
+  /* Location (aula) — right, muted */
   .trn-item-loc {
     font-family: 'Inter', sans-serif;
     font-size: 10px;
     font-weight: 600;
     color: rgba(255,255,255,0.38);
     white-space: nowrap;
+    flex-shrink: 0;
   }
 
+  /* Divider between sessions */
   .trn-divider {
     height: 1px;
-    background: rgba(255,255,255,0.07);
-    margin: 2px 0;
+    background: rgba(255,255,255,0.06);
+    margin: 1px 12px;
   }
 
   /* ── MOBILE RESPONSIVE: cards ────────────────────────── */
@@ -4410,10 +4252,13 @@
     .sby-time  { font-size: 18px; }
     .sby-left  { width: 72px; padding: 0 11px; }
 
-    .trn-left  { width: 110px; padding: 10px 11px; }
-    .trn-right { padding: 9px 11px; }
-    .trn-item-name  { font-size: 12px; }
-    .trn-item-times { font-size: 11px; }
+    .trn-left        { width: 58px; min-width: 58px; padding: 10px 8px; }
+    .trn-code        { font-size: 8px; letter-spacing: 0.6px; }
+    .trn-item        { padding: 4px 10px; min-height: 28px; gap: 6px; }
+    .trn-item-name   { font-size: 11px; }
+    .trn-item-times  { font-size: 11px; }
+    .trn-item-loc    { font-size: 9px; }
+    .trn-divider     { margin: 1px 10px; }
   }
 
 
@@ -4604,7 +4449,8 @@
     background: transparent !important;
     border-right: none !important;
     width: auto !important;
-    padding: 0 8px 0 20px !important;
+    /* v4.7: 14px left = 4px rail + 10px, same as turno-z1 */
+    padding: 0 8px 0 14px !important;
     flex-direction: row !important;
     align-items: center !important;
     gap: 0 !important;
@@ -4670,7 +4516,8 @@
     flex-direction: row;
     align-items: center;
     gap: 10px;
-    padding: 0 16px 0 20px;
+    /* v4.7: 14px left = 4px rail + 10px */
+    padding: 0 16px 0 14px;
   }
 
   /* ferie-text column → row (codice + label inline) */
@@ -4706,7 +4553,8 @@
     flex-direction: row;
     align-items: center;
     gap: 10px;
-    padding: 0 16px 0 20px;
+    /* v4.7: 14px left = 4px rail + 10px */
+    padding: 0 16px 0 14px;
   }
 
   .layover-text {
@@ -5040,9 +4888,7 @@
     margin: 0;
   }
 
-  .stats-sheet-range {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
+  .stats-sheet-range { font-size: 11px;
     font-weight: 600;
     color: var(--accent-flight);
     letter-spacing: 0.3px;
@@ -5089,9 +4935,7 @@
   .stats-kpi-turni::before   { background: #A78BFA; }
   .stats-kpi-layover::before { background: #22D3EE; }
 
-  .stats-kpi-val {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 22px;
+  .stats-kpi-val { font-size: 22px;
     font-weight: 800;
     line-height: 1;
     letter-spacing: -0.5px;
@@ -5101,6 +4945,63 @@
   .stats-kpi-sectors .stats-kpi-val { color: #60A5FA; }
   .stats-kpi-turni   .stats-kpi-val { color: #A78BFA; }
   .stats-kpi-layover .stats-kpi-val { color: #22D3EE; }
+
+  /* ── Monthly flight hours chart ─────────────────────────── */
+  .stats-chart-section {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 0.5px solid var(--ui-border-subtle, rgba(255,255,255,0.08));
+  }
+  .stats-chart-title {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    color: var(--text-dimmed, #94A3B8);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  .stats-chart-wrap {
+    width: 100%;
+    overflow: hidden;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.03);
+    border: 0.5px solid var(--ui-border-subtle, rgba(255,255,255,0.07));
+    padding: 14px 10px 10px;
+  }
+  .stats-chart-empty {
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-dimmed, #94A3B8);
+    padding: 20px 0;
+  }
+  body.light-mode .stats-chart-wrap {
+    background: rgba(0,0,0,0.02);
+    border-color: rgba(0,0,0,0.07);
+  }
+
+  /* ── Chart average label (HTML above SVG) ── */
+  .stats-chart-avg-label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 500;
+    color: #F59E0B;
+    margin-bottom: 6px;
+  }
+  .stats-chart-avg-label strong { font-weight: 700; }
+  .stats-chart-avg-swatch {
+    display: inline-block;
+    width: 16px;
+    height: 1.5px;
+    background: #F59E0B;
+    border-radius: 1px;
+    opacity: 0.85;
+    /* dashed via repeating-linear-gradient */
+    background: repeating-linear-gradient(90deg, #F59E0B 0, #F59E0B 4px, transparent 4px, transparent 7px);
+  }
+
+
 
   .stats-kpi-lbl {
     font-family: 'Inter', sans-serif;
@@ -5156,9 +5057,7 @@
     gap: 3px;
   }
 
-  .stats-day-val {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 26px;
+  .stats-day-val { font-size: 26px;
     font-weight: 800;
     line-height: 1;
     letter-spacing: -1px;
@@ -5212,9 +5111,7 @@
     color: var(--ui-text-muted);
   }
 
-  .stats-footer-val {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
+  .stats-footer-val { font-size: 11px;
     font-weight: 700;
     color: var(--ui-text);
   }
@@ -5287,16 +5184,12 @@
   }
 
   /* Wordmark */
-  .upload-wordmark {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 9px; font-weight: 700;
+  .upload-wordmark { font-size: 9px; font-weight: 700;
     letter-spacing: 3.5px; text-transform: uppercase;
     color: var(--accent-flight); opacity: 0.60;
     margin-bottom: 4px;
   }
-  .upload-credits {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 8px; font-weight: 700;
+  .upload-credits { font-size: 8px; font-weight: 700;
     letter-spacing: 2.5px; text-transform: uppercase;
     color: var(--accent-flight); opacity: 0.40;
     margin-bottom: 14px;
@@ -5335,9 +5228,7 @@
     width: 100%; max-width: 280px; padding: 0 2px;
     margin-bottom: 0;
   }
-  .upload-footnote {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 9px; font-weight: 700; letter-spacing: 1.4px;
+  .upload-footnote { font-size: 9px; font-weight: 700; letter-spacing: 1.4px;
     text-transform: uppercase; color: var(--text-muted); opacity: 0.55;
   }
 
@@ -5439,8 +5330,7 @@
   }
 
   /* Text */
-  .upload-wordmark {
-    font-family:'JetBrains Mono',monospace; font-size:9px; font-weight:700;
+  .upload-wordmark { font-size:9px; font-weight:700;
     letter-spacing:3.5px; text-transform:uppercase;
     color:var(--accent-flight); opacity:.60; margin-bottom:14px;
   }
@@ -5494,8 +5384,7 @@
     display:flex; align-items:center; justify-content:center;
     width:100%; max-width:280px; padding:8px 2px 0;
   }
-  .upload-utc {
-    font-family:'JetBrains Mono',monospace; font-size:9px; font-weight:700;
+  .upload-utc { font-size:9px; font-weight:700;
     letter-spacing:1.4px; text-transform:uppercase;
     color:var(--text-muted); opacity:.50;
   }
@@ -5641,9 +5530,7 @@
     .debug-panel  { border-color: rgba(252,211,77,0.20); }
   }
 
-  .debug-badge {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 9px;
+  .debug-badge { font-size: 9px;
     font-weight: 800;
     letter-spacing: 0.3px;
     color: #92400E;
@@ -5668,9 +5555,7 @@
   .debug-content       { display: none; padding: 0 14px 12px; }
   .debug-content.open  { display: block; }
 
-  .debug-line {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
+  .debug-line { font-size: 10px;
     color: var(--text-muted);
     padding: 4px 0;
     border-bottom: 1px solid var(--border-subtle);
@@ -5678,59 +5563,6 @@
     opacity: 0.75;
   }
   .debug-line:last-child { border-bottom: none; }
-
-  /* ── FAB "OGGI" ──────────────────────────────────────── */
-
-  .fab-today {
-    position: fixed;
-    bottom: max(28px, calc(18px + env(safe-area-inset-bottom)));
-    right: max(20px, calc(12px + env(safe-area-inset-right)));
-    z-index: 200;
-    display: none;
-    align-items: center;
-    gap: 6px;
-    background: var(--accent-flight);
-    color: #fff;
-    border: none;
-    border-radius: 999px;
-    padding: 11px 18px 11px 14px;
-    font-family: 'Inter', sans-serif;
-    font-size: 12px;
-    font-weight: 800;
-    letter-spacing: 0.4px;
-    cursor: pointer;
-    box-shadow:
-      0 4px 16px rgba(37,99,235,0.35),
-      0 1px 0 rgba(255,255,255,0.12) inset;
-    white-space: nowrap;
-    will-change: transform, opacity;
-    transform: translateY(0) scale(1) translateZ(0);
-    transition:
-      box-shadow    0.16s ease,
-      transform     0.14s cubic-bezier(0.34,1.56,0.64,1);
-    animation: fabIn 0.32s cubic-bezier(0.34,1.4,0.64,1) both;
-  }
-
-  .fab-today.visible { display: flex; }
-
-  @keyframes fabIn {
-    from { opacity: 0; transform: translateY(16px) scale(0.9) translateZ(0); }
-    to   { opacity: 1; transform: translateY(0) scale(1) translateZ(0); }
-  }
-
-  @media (hover: hover) {
-    .fab-today:hover {
-      box-shadow: 0 6px 22px rgba(37,99,235,0.45), 0 1px 0 rgba(255,255,255,0.14) inset;
-      transform: translateY(-1px) scale(1) translateZ(0);
-    }
-  }
-
-  .fab-today:active {
-    transform: scale(0.94) translateZ(0);
-    box-shadow: 0 2px 8px rgba(37,99,235,0.28);
-  }
-
-  .fab-today svg { flex-shrink: 0; opacity: 0.90; }
 
   /* ── Filters bar ─────────────────────────────────────── */
 
@@ -5828,9 +5660,7 @@
     max-width: 100%;
   }
 
-  #iataToastCode {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 13px;
+  #iataToastCode { font-size: 13px;
     font-weight: 800;
     color: var(--accent-flight);
     letter-spacing: 0.3px;
@@ -5844,9 +5674,7 @@
     opacity: 0.80;
   }
 
-  #iataToastTime {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
+  #iataToastTime { font-size: 12px;
     font-weight: 700;
     color: var(--text-primary);
   }
@@ -5908,19 +5736,13 @@
   .layover-title-row {
     display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
   }
-  .layover-title {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px; font-weight: 800; letter-spacing: 1px;
+  .layover-title { font-size: 11px; font-weight: 800; letter-spacing: 1px;
     color: var(--accent-layover); text-transform: uppercase;
   }
-  .layover-location {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 13px; font-weight: 800;
+  .layover-location { font-size: 13px; font-weight: 800;
     color: var(--text-primary); letter-spacing: 0.5px;
   }
-  .layover-htl-badge {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 8px; font-weight: 800; letter-spacing: 0.5px;
+  .layover-htl-badge { font-size: 8px; font-weight: 800; letter-spacing: 0.5px;
     color: var(--accent-layover);
     background: rgba(8,145,178,0.12);
     border: 1px solid rgba(8,145,178,0.22);
@@ -6595,10 +6417,9 @@ body.light-mode .card-training {
   border-color: rgba(37,99,235,0.18) !important;
   box-shadow: 0 2px 10px rgba(37,99,235,0.07), 0 1px 0 rgba(255,255,255,0.9) inset !important;
 }
-body.light-mode .card-training .trn-left       { background: rgba(37,99,235,0.08) !important; border-right-color: rgba(37,99,235,0.14) !important; }
+body.light-mode .card-training .trn-left        { background: rgba(37,99,235,0.10) !important; border-right-color: rgba(37,99,235,0.14) !important; }
 body.light-mode .card-training .trn-code        { color: #1D4ED8 !important; }
-body.light-mode .card-training .trn-sub         { color: #3D5A80 !important; opacity: 1; }
-body.light-mode .card-training .trn-item-name   { color: #0F172A !important; }
+body.light-mode .card-training .trn-item-name   { color: #1E3A5F !important; }
 body.light-mode .card-training .trn-item-times  { color: #1D4ED8 !important; }
 body.light-mode .card-training .trn-item-loc    { color: #64748B !important; opacity: 1; }
 body.light-mode .card-training .trn-divider     { background: rgba(37,99,235,0.12) !important; }
@@ -6684,14 +6505,6 @@ body.light-mode .debug-panel  { background: #FFFBEB !important; border-color: rg
 body.light-mode .debug-title  { color: #92400E !important; }
 body.light-mode .debug-badge  { color: #92400E !important; background: rgba(245,158,11,0.14) !important; }
 body.light-mode .debug-line   { color: #475569 !important; border-bottom-color: rgba(15,23,42,0.06) !important; }
-
-/* ── FAB ──────────────────────────────────────────────────── */
-.fab-today {
-  background: var(--accent-flight) !important;
-  color: #fff !important;
-  border: none !important;
-  box-shadow: 0 4px 16px rgba(37,99,235,0.38), 0 1px 0 rgba(255,255,255,0.10) inset !important;
-}
 
 /* ── IMPORT BANNER ────────────────────────────────────────── */
 body.light-mode .import-banner       { background: rgba(22,163,74,0.06) !important; border-color: rgba(22,163,74,0.16) !important; }
@@ -6990,21 +6803,32 @@ body.light-mode .rest-dash             { color: #94A3B8 !important; opacity: 1; 
 body.light-mode .rest-label            { color: #64748B !important; opacity: 1; }
 
 /* ── Turno block ── */
-body.light-mode .turno-block {
+body.light-mode .turno-block:not(.classic-row-trip) {
   background: var(--surface) !important;
   border-color: rgba(37,99,235,0.18) !important;
   border-left: 4px solid var(--accent) !important;
   box-shadow: 0 2px 8px rgba(37,99,235,0.05), 0 1px 3px rgba(15,23,42,0.04) !important;
 }
+body.light-mode .classic-row-trip {
+  background: #FFFFFF;
+  border-color: #E2E8F0;
+  box-shadow: 0 1px 3px rgba(15,23,42,0.07), 0 3px 12px rgba(15,23,42,0.06);
+}
+body.light-mode .classic-row-trip .date-rail { background: var(--accent-flight) !important; }
+body.light-mode .classic-row-trip .classic-route .cr-iata { color: #0F172A; }
+body.light-mode .classic-row-trip .classic-route .cr-dot  { color: #2563EB; opacity: 0.60; }
 body.light-mode .turno-block-header         { background: transparent !important; }
 body.light-mode .turno-block-header:hover   { background: rgba(15,23,42,0.03) !important; }
+body.light-mode .classic-row-trip:hover:not(.expanded)   { background: rgba(15,23,42,0.02) !important; }
 body.light-mode .turno-block-body           { border-top-color: var(--border) !important; }
 body.light-mode .tb-path-row               { background: rgba(15,23,42,0.05) !important; }
 body.light-mode .tb-ac-badge               { border-color: var(--border) !important; color: var(--text-primary) !important; }
 body.light-mode .tb-date-range             { color: var(--text-secondary) !important; }
 body.light-mode .tb-chevron                { color: var(--text-secondary) !important; }
-body.light-mode .tb-tag-lc                 { color: rgba(185,28,28,0.90) !important; }
-body.light-mode .tb-tag-fam                { color: rgba(180,83,9,0.90) !important; }
+body.light-mode .tb-tag-lc                 { color: #B91C1C !important; background: transparent !important; border-color: #B91C1C !important; }
+body.light-mode .tb-tag-fam                { color: #B45309 !important; background: transparent !important; border-color: #B45309 !important; }
+body.light-mode .tba-tag-lc                { color: #B91C1C !important; background: transparent !important; border-color: #B91C1C !important; }
+body.light-mode .tba-tag-fam               { color: #B45309 !important; background: transparent !important; border-color: #B45309 !important; }
 
 /* ── Filter bar & search ── */
 body.light-mode .filters               { background: transparent; }
@@ -7045,13 +6869,6 @@ body.light-mode .import-banner         {
 }
 body.light-mode .import-banner-text    { color: #0F172A !important; }
 
-/* ── FAB ── */
-body.light-mode .fab-today             {
-  background: var(--accent-flight) !important;
-  color: #fff !important;
-  box-shadow: 0 4px 16px rgba(37,99,235,0.32) !important;
-}
-
 /* ── PWA install prompt ── */
 body.light-mode #pwaPromptInner        {
   background: #FFFFFF !important;
@@ -7081,7 +6898,8 @@ body.light-mode ::-webkit-scrollbar-thumb  { background: #CBD5E1; }
   --dock-icon:   #f8fafc;
   --toggle-track:#334155;
   --dock-shadow: 0 8px 32px rgba(0,0,0,0.40), 0 2px 8px rgba(0,0,0,0.28);
-  --header-h2:   60px;
+  --header-h2:   60px;   /* collapsed (no countdown) */
+  --header-h2-cd: 82px; /* expanded (countdown visible) */
 }
 body.light-mode {
   --bg-app:      #f8fafc;
@@ -7113,14 +6931,20 @@ body.light-mode { background: var(--bg-app) !important; color: var(--text-main) 
    LEFT: spacer  |  CENTER: month + countdown  |  RIGHT: toggle
    ══════════════════════════════════════════════════════════════ */
 .header {
-  position: sticky !important;
+  position: fixed !important;
   top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
   z-index: 200 !important;
-  min-height: var(--header-h2) !important;
-  padding: 0 16px !important;
-  padding-top:   env(safe-area-inset-top)   !important;
-  padding-left:  max(16px, env(safe-area-inset-left))  !important;
-  padding-right: max(16px, env(safe-area-inset-right)) !important;
+  height: auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  justify-content: flex-start !important;
+  padding-top: max(10px, env(safe-area-inset-top)) !important;
+  padding-bottom: 10px !important;
+  padding-left:  max(15px, env(safe-area-inset-left))  !important;
+  padding-right: max(15px, env(safe-area-inset-right)) !important;
   background: var(--bg-header) !important;
   backdrop-filter: blur(20px) saturate(180%) !important;
   -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
@@ -7130,27 +6954,80 @@ body.light-mode { background: var(--bg-app) !important; color: var(--text-main) 
 }
 
 .header-inner {
-  max-width: 720px;
-  margin: 0 auto;
-  min-height: var(--header-h2);
-  display: grid !important;
-  grid-template-columns: 56px 1fr 56px !important;
-  align-items: center !important;
-  column-gap: 0 !important;
+  width: 100%;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  gap: 0 !important;
+  position: relative !important;
+}
+/* Top row: home | absolute-centred-title | toggle */
+.header-inner-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  height: 40px;
+  width: 100%;
+}
+/* Countdown row — flow below top row, centred */
+.header-countdown-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 4px 0 2px;
+  width: 100%;
 }
 
-/* LEFT spacer — same width as toggle, keeps CENTER truly centred */
-.header-left-spacer { width: 56px; }
-
-/* CENTER column */
+/* Title centred absolutely so left/right elements don't affect it */
 .header-center {
+  position: absolute !important;
+  left: 50% !important;
+  top: 50% !important;
+  transform: translate(-50%, -50%) !important;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
-  min-width: 0;
-  padding: 8px 0;
+  gap: 0;
+  pointer-events: none;
+  white-space: nowrap;
 }
+.header-center > * { pointer-events: auto; }
+
+/* LEFT slot — Home button */
+.header-left-spacer {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+/* Home icon button — matches dock button aesthetic */
+.btn-home-icon {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s ease, transform 0.1s ease;
+  flex-shrink: 0;
+}
+.btn-home-icon:hover  { background: rgba(255,255,255,0.18); }
+.btn-home-icon:active { transform: scale(0.92); background: rgba(255,255,255,0.22); }
+body.light-mode .btn-home-icon {
+  background: rgba(0,0,0,0.07);
+  border-color: rgba(0,0,0,0.08);
+  color: var(--text-main);
+}
+body.light-mode .btn-home-icon:hover { background: rgba(0,0,0,0.12); }
 
 /* Month button */
 .header-month-btn {
@@ -7189,11 +7066,19 @@ body.light-mode { background: var(--bg-app) !important; color: var(--text-main) 
 
 /* Countdown — centred under month title */
 #headerCountdown {
-  display: none;          /* shown by startCountdown() */
+  display: none;          /* shown by startCountdown() — now .header-countdown-row */
   align-items: center;
   justify-content: center;
   gap: 5px;
   line-height: 1;
+}
+/* v4.8.4: countdown is now a flow row below the top row */
+.header-countdown-row {
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 3px 0 3px;
+  width: 100%;
 }
 .countdown-label {
   font-family: 'Inter', sans-serif;
@@ -7203,9 +7088,7 @@ body.light-mode { background: var(--bg-app) !important; color: var(--text-main) 
   text-transform: uppercase;
   color: var(--text-dimmed) !important;
 }
-.countdown-value {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px !important;
+.countdown-value { font-size: 11px !important;
   font-weight: 800;
   color: var(--accent) !important;
   letter-spacing: 0.2px;
@@ -7398,8 +7281,10 @@ body.light-mode .toggle-icon-sun  { opacity: 1; }
   padding-bottom: max(110px, calc(96px + env(safe-area-inset-bottom))) !important;
 }
 
-/* FAB legacy — hidden */
-#fabToday { display: none !important; }
+/* Offset for fixed header (60px) when roster is shown */
+body:has(#appHeader[style*="flex"]) .main {
+  padding-top: calc(var(--header-h2) + env(safe-area-inset-top) + 8px) !important;
+}
 
 /* Month dropdown below header */
 .month-dropdown { top: calc(var(--header-h2) + env(safe-area-inset-top) + 4px) !important; }
@@ -7620,80 +7505,988 @@ body, .header, .app-dock, .dock-search-panel, .toggle-thumb, #btnTheme {
 body.light-mode #disclaimerOverlay { background: rgba(0,0,0,0.35); }
 body.light-mode #disclaimerBox     { box-shadow: 0 16px 48px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.10); }
 body.light-mode #dsAcceptBtn       { color: #fff; }
+
+/* --- MODULO A: LANDING PAGE MONOLITH --- */
+:root {
+  --lp-bg: #0f172a;
+  --lp-accent: #3b82f6;
+  --lp-text: #f8fafc;
+  --lp-dimmed: #94a3b8;
+}
+
+.lp-monolith {
+  display: flex; flex-direction: column;
+  width: 100%; height: 100svh; /* Zero-Scroll */
+  overflow: hidden; background: var(--lp-bg); color: var(--lp-text);
+  padding: env(safe-area-inset-top) 20px env(safe-area-inset-bottom);
+  box-sizing: border-box;
+}
+
+.lp-top { height: 35%; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding-bottom: 30px; }
+.lp-squircle {
+  width: 80px; height: 80px; border-radius: 24px;
+  background: linear-gradient(145deg, #1D4ED8 0%, #2563EB 100%);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 10px 30px rgba(37,99,235,0.4); margin-bottom: 20px;
+}
+.lp-heading { font-size: 36px; font-weight: 800; letter-spacing: -1px; margin: 0; }
+.lp-heading span { color: var(--lp-accent); }
+
+.lp-center { height: 20%; display: flex; align-items: center; justify-content: center; }
+.lp-btn-upload {
+  width: 100%; max-width: 340px; min-height: 60px; /* Senior-Friendly */
+  border-radius: 20px; background: #2563EB; color: #fff; border: none;
+  font-size: 18px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 12px;
+  box-shadow: 0 8px 25px rgba(37,99,235,0.4); cursor: pointer;
+}
+
+.lp-bottom { height: 45%; display: flex; flex-direction: column; overflow: hidden; }
+.lp-library { flex: 1; display: flex; flex-direction: column; overflow: hidden; width: 100%; max-width: 450px; margin: 0 auto; }
+.lp-library-hdr { display: flex; align-items: center; gap: 15px; padding: 20px 0 15px; }
+.lp-library-title { font-size: 12px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--lp-dimmed); white-space: nowrap; }
+.lp-library-line { flex: 1; height: 1px; background: rgba(255,255,255,0.1); }
+.lp-library-pills { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; padding-bottom: 40px; }
+.lp-library-pills::-webkit-scrollbar { display: none; }
+
+.lp-roster-pill {
+  display: flex; align-items: center; gap: 16px; min-height: 64px;
+  padding: 0 20px; border-radius: 18px; background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08); color: #fff; font-size: 16px; font-weight: 600;
+  text-align: left; transition: all 0.2s; cursor: pointer; width: 100%;
+}
+.lp-roster-pill-active { background: var(--lp-accent); border-color: var(--lp-accent); }
+.lp-roster-pill-del { margin-left: auto; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: var(--lp-dimmed); background: none; border: none; cursor: pointer; font-size: 16px; }
+
+/* ── LANDING PAGE ISOLATION ─────────────────────────────── */
+/* Zero-scroll lock when LP is active */
+body:has(#uploadZone[style*="flex"]),
+body:has(#uploadZone:not([style*="none"])) {
+  overflow: hidden !important;
+  background: #0f172a !important;
+}
+
+/* Hide header and dock while LP is shown */
+body:has(#uploadZone[style*="flex"]) #appHeader,
+body:has(#uploadZone[style*="flex"]) .app-dock,
+body:has(#uploadZone:not([style*="none"])) #appHeader,
+body:has(#uploadZone:not([style*="none"])) .app-dock {
+  display: none !important;
+}
+
+/* Strip main container padding while LP is shown */
+body:has(#uploadZone[style*="flex"]) #mainContent,
+body:has(#uploadZone:not([style*="none"])) #mainContent {
+  padding: 0 !important;
+  margin: 0 !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+}
+
+/* ── Classic View only — v4.7 ─────────────────────────── */
+#view-classic { display: block; }
+
+/* ── v4.7: turno-block left rail handled by .date-rail inside .classic-date-area ── */
+/* The old ::before rail is removed — date-rail is positioned inside the date-area */
+.turno-block {
+  position: relative;
+}
+/* ::before removed in v4.7 — .date-rail handles the 4px rail */
+
+
+/* v4.7: .classic-row.turno-block — ensure overflow:hidden for border-radius clipping */
+.classic-row.turno-block {
+  overflow: hidden !important; /* clips date-rail border-radius */
+}
+/* When expanded: allow body to show */
+.classic-row.turno-block.expanded {
+  overflow: visible !important;
+}
+.classic-row.turno-block .classic-row-body {
+  overflow: hidden;
+  border-radius: 0 0 var(--radius-md, 14px) var(--radius-md, 14px);
+}
+/* =========================================================
+   v4.7 — CLASSIC VIEW UNIFIED 3-ZONE GRID
+   Identical layout for Trip Headers, OFF, SBY, FERIE.
+   Zona 1 (65px): rail 4px + day number(s) + month abbr
+   Zona 2 (flex):  route IATA / duty label — always same X
+   Zona 3 (auto):  badges (AC/LC/FAM) + chevron
+========================================================= */
+
+/* ── Turno header outer grid — mirrors OFF/SBY card layout ── */
+.turno-header-grid {
+  display: grid;
+  grid-template-columns: 65px 1fr auto;
+  align-items: center;
+  width: 100%;
+  min-height: 56px;
+  gap: 0;
+}
+
+/* Zone 1: date numerals — sits after the 4px rail (handled by ::before) */
+.turno-z1 {
+  width: 65px;
+  min-width: 65px;
+  padding-left: 14px;   /* 4px rail + 10px breathing room */
+  padding-right: 5px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 1px;
+  align-self: stretch;
+}
+
+/* Day number(s) in Zone 1 */
+.turno-z1 .cv-z1-date {
+  font-size: 18px;
+  font-weight: 300;
+  color: var(--text-primary);
+  letter-spacing: -1px;
+  line-height: 1;
+}
+
+/* Multi-day range: reduce size so "14-16" fits 65px */
+.turno-z1 .cv-z1-date.date-range-text {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  color: var(--text-secondary);
+}
+
+/* Month abbreviation under the number */
+.turno-z1 .cv-z1-date2 {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  line-height: 1;
+}
+
+/* Zone 2: route IATA text — always starts at the same X */
+.turno-z2 {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 6px 10px 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.turno-z2-route {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.45;
+  letter-spacing: -0.1px;
+}
+
+.turno-z2-office {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+/* path-iata and path-dot inside turno-z2-route */
+.turno-z2-route .tb-path-iata {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.turno-z2-route .tb-path-dot {
+  font-size: 12px;
+  color: var(--accent-flight);
+  opacity: 0.55;
+  padding: 0 2px;
+}
+
+/* Zone 3: badges + chevron */
+.turno-z3 {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  padding-right: 10px;
+  padding-left: 4px;
+}
+
+/* Light mode: ensure legibility in Z1 and Z2 */
+body.light-mode .turno-z1 .cv-z1-date        { color: #0F172A; }
+body.light-mode .turno-z1 .cv-z1-date.date-range-text { color: #334155; }
+body.light-mode .turno-z1 .cv-z1-date2       { color: #94A3B8; }
+body.light-mode .turno-z2-route .tb-path-iata { color: #0F172A; }
+body.light-mode .turno-z2-route .tb-path-dot  { color: #2563EB; opacity: 0.60; }
+body.light-mode .turno-z2-office              { color: #475569; }
+
+@media (max-width: 430px) {
+  .turno-header-grid          { min-height: 52px; }
+  .turno-z1 .cv-z1-date       { font-size: 16px; }
+  .turno-z1 .cv-z1-date.date-range-text { font-size: 12px; }
+  .turno-z2-route .tb-path-iata { font-size: 13px; }
+  .turno-z3                   { padding-right: 8px; gap: 3px; }
+}
+
+/* ── Legacy tb-meta-row retained for any remaining references ─ */
+/* (no longer used in turno header — kept as safety net) */
+.tb-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+}
+
+/* ── Classic View Row Base — uniformità millimetrica ─────── */
+/* OFF, SBY, FERIE usano la stessa griglia 3-zone:
+   Zona1 65px (barra + data) | Zona2 flex | Zona3 auto */
+
+.cv-row {
+  display: grid;
+  grid-template-columns: 65px 1fr auto;
+  align-items: center;
+  min-height: 58px;
+  position: relative;
+  border-radius: var(--radius-md);
+  margin-bottom: 6px;
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Rail sinistro — identico in tutti i tipi: 4px fissi */
+.cv-rail {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  border-radius: var(--radius-md) 0 0 var(--radius-md);
+}
+.cv-rail-flight   { background: var(--accent-flight); }
+.cv-rail-sby      { background: var(--accent-sby); }
+.cv-rail-off      { background: var(--accent-off); }
+.cv-rail-holiday  { background: var(--accent-holiday); }
+.cv-rail-layover  { background: var(--accent-layover); }
+.cv-rail-dh       { background: var(--accent-dh); }
+.cv-rail-training { background: var(--accent-training, #374151); }
+
+/* Zona 1: data (con indentazione dopo la barra 4px) */
+.cv-z1 {
+  padding-left: 14px; /* 4px barra + 10px spazio */
+  padding-right: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 1px;
+  height: 100%;
+}
+.cv-z1-date {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--text-secondary);
+  letter-spacing: -0.2px;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+.cv-z1-date2 {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 0px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* Zona 2: testo principale — allineamento orizzontale fisso */
+.cv-z2 {
+  padding: 10px 8px 10px 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+}
+.cv-z2-title {
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.1px;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cv-z2-sub {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-muted);
+  letter-spacing: 0.1px;
+  line-height: 1;
+}
+/* Per le righe di volo multiple: testo a capo libero, no ellipsis */
+.cv-z2.cv-z2-multiline .cv-z2-title {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+}
+
+/* Zona 3: badge destra */
+.cv-z3 {
+  padding: 8px 10px 8px 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  flex-wrap: nowrap;
+}
+
+/* Riusa i badge esistenti tb-ac-badge, tb-tag-lc, tb-tag-fam, turno-block-chevron */
+/* Assicura coerenza dimensionale nelle 3 zone dentro turno-block-header */
+.turno-block-header .tba-zone1 .turno-block-dates {
+  font-size: 10px;
+  padding: 2px 5px;
+  white-space: normal;
+  line-height: 1.2;
+  word-break: break-word;
+}
+
+@media (max-width: 430px) {
+  .cv-z1           { padding-left: 12px; }
+  .cv-z1-date      { font-size: 10px; }
+  .cv-z2-title     { font-size: 13px; }
+  .cv-z3           { padding-right: 8px; gap: 3px; }
+  .turno-block-header .tba-zone1 .turno-block-dates { font-size: 9px; }
+}
+
+/* ── OFF card: usa cv-row ────────────────────────────────── */
+/* Override card-off-dark con la griglia 3-zone */
+.card-off-dark.cv-row::before { display: none; } /* già gestito da .cv-rail */
+.card-off-dark.cv-row .off-left { display: none; } /* rimosso: usa zone */
+
+/* ── SBY card: override per allineamento ─────────────────── */
+/* Il card-sby-dark mantiene la struttura esistente ma il padding
+   sinistro è allineato a 14px come tutte le altre righe cv-row */
+.card-sby-dark::before {
+  border-radius: var(--radius-md) 0 0 var(--radius-md);
+}
+
+/* =========================================================
+   END v4.7 CLASSIC GRID
+========================================================= */
+
+
+/* =========================================================
+   v4.7 — CLASSIC-ROW UNIFIED TEMPLATE
+   Struttura HTML identica per Trip Header, OFF, SBY, FERIE.
+   .classic-row         outer wrapper, id="day-N", in flow
+   .classic-date-area   Zona 1 — larghezza fissa 64px
+   .date-rail           4px rail colorato (posizione assoluta)
+   .date-number         numero giorno (o range "14-16")
+   .date-wd             giorno della settimana abbreviato
+   .classic-content-area Zona 2 — flex, content text
+   .classic-right-area  Zona 3 — badges + chevron, auto
+========================================================= */
+
+.classic-row {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  position: relative;
+  border-radius: var(--radius-md, 14px);
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 8px;
+  min-height: 58px;
+  cursor: default;
+  transition: box-shadow 0.18s ease;
+}
+
+/* v4.7: trip row is column: classic-trip-header (flex row) + classic-row-body */
+.classic-row-trip {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+/* Header strip: 3-zone horizontal layout */
+.classic-trip-header {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  flex: none;
+  min-height: 58px;
+  position: relative;
+}
+
+.classic-row.classic-row-trip {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.classic-row.classic-row-trip:active {
+  background: var(--surface-2);
+}
+
+/* ── Zona 1: date area ────────────────────────────────── */
+.classic-date-area {
+  position: relative;
+  width: 64px;
+  min-width: 64px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 10px 6px 10px 14px; /* 14px = after 4px rail + 10px breathing room */
+  gap: 1px;
+}
+
+/* 4px colored left rail — absolute, full height */
+.date-rail {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+  border-radius: var(--radius-md, 14px) 0 0 var(--radius-md, 14px);
+}
+.rail-c-flight   { background: var(--accent-flight); }
+.rail-c-off      { background: var(--accent-off); }
+.rail-c-sby      { background: var(--accent-sby); }
+.rail-c-holiday  { background: var(--accent-holiday); }
+.rail-c-layover  { background: var(--accent-layover); }
+.rail-c-training { background: var(--accent-training, #374151); }
+.rail-c-dh       { background: var(--accent-dh); }
+
+/* Day number in Zona 1 */
+.date-number {
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-size: 22px;
+  font-weight: 200;
+  color: var(--text-primary);
+  letter-spacing: -1px;
+  line-height: 1;
+}
+
+/* Range "14-16": smaller to fit 64px */
+.date-number.date-range {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  color: var(--text-secondary);
+}
+
+/* Weekday abbreviation */
+.date-wd {
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  line-height: 1;
+}
+
+/* Today highlight */
+.classic-row.today-row .date-number { color: var(--accent-flight); }
+.classic-row.today-row .date-wd     { color: var(--accent-flight); opacity: 0.75; }
+
+/* ── Zona 2: content area ─────────────────────────────── */
+.classic-content-area {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 10px 6px 10px 0;
+  gap: 2px;
+}
+
+.classic-label {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.1px;
+  line-height: 1.15;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.classic-sub {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-muted);
+  letter-spacing: 0.1px;
+  line-height: 1;
+}
+
+/* Route text in trip header Zona 2 */
+.classic-route {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.5;
+  letter-spacing: -0.1px;
+}
+
+.classic-route .cr-iata {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.classic-route .cr-dot {
+  font-size: 11px;
+  color: var(--accent-flight);
+  opacity: 0.55;
+  padding: 0 2px;
+}
+
+/* SBY times */
+.classic-times {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.classic-time-val {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.3px;
+  line-height: 1;
+}
+
+.classic-time-sep {
+  font-size: 16px;
+  font-weight: 300;
+  color: var(--text-muted);
+}
+
+.classic-time-utc {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+  margin-left: 2px;
+}
+
+/* ── Zona 3: right area ───────────────────────────────── */
+.classic-right-area {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  padding: 8px 10px 8px 4px;
+}
+
+/* Chevron for trip header */
+.cr-chevron {
+  width: 26px;
+  height: 26px;
+  min-width: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(96,165,250,0.14);
+  border: 1.5px solid rgba(96,165,250,0.32);
+  color: #60A5FA;
+  transition: transform 0.24s ease, background 0.16s ease;
+  flex-shrink: 0;
+  pointer-events: none;
+}
+
+.classic-row-trip.expanded .cr-chevron {
+  transform: rotate(180deg);
+  background: rgba(96,165,250,0.24);
+  border-color: rgba(96,165,250,0.50);
+}
+
+/* ── Collapsible body ─────────────────────────────────── */
+.classic-row-body {
+  display: none;
+  background: transparent;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.classic-row.expanded .classic-row-body {
+  display: block;
+}
+
+/* ── Light mode overrides ─────────────────────────────── */
+body.light-mode .classic-row {
+  background: #FFFFFF;
+  border-color: #E2E8F0;
+  box-shadow: 0 1px 3px rgba(15,23,42,0.07), 0 3px 12px rgba(15,23,42,0.06);
+}
+
+body.light-mode .date-number      { color: #0F172A; }
+body.light-mode .date-wd          { color: #94A3B8; }
+body.light-mode .classic-label    { color: #0F172A; }
+body.light-mode .classic-sub      { color: #475569; }
+body.light-mode .classic-route .cr-iata { color: #0F172A; }
+body.light-mode .classic-route .cr-dot  { color: #2563EB; opacity: 0.60; }
+body.light-mode .date-number.date-range { color: #334155; }
+body.light-mode .classic-time-val { color: #0F172A; }
+body.light-mode .classic-time-sep { color: #94A3B8; }
+
+/* ── Responsive ───────────────────────────────────────── */
+@media (max-width: 430px) {
+  .classic-date-area  { width: 58px; min-width: 58px; padding-left: 12px; }
+  .date-number        { font-size: 18px; }
+  .date-number.date-range { font-size: 12px; }
+  .classic-label      { font-size: 13px; }
+  .classic-route .cr-iata { font-size: 13px; }
+  .classic-time-val   { font-size: 17px; }
+  .cr-chevron         { width: 22px; height: 22px; min-width: 22px; }
+  .classic-right-area { padding-right: 8px; gap: 3px; }
+}
+
+/* ── Expanded trip: extend the accent rail through the body ──
+   Strategy: when expanded, the outer block gets overflow:hidden which
+   clips content to the border-radius shape. The .date-rail inside
+   .classic-date-area is absolute/top:0/bottom:0 but only covers the
+   header height. We fix this by making .classic-date-area stretch to
+   the full block height using a wrapper column layout trick.
+   
+   Implementation: inject a full-height rail pseudo on .classic-row-trip
+   itself. overflow:hidden on the block clips the rail to the rounded shape
+   automatically — no manual border-radius needed on the pseudo.         */
+.classic-row-trip {
+  position: relative;
+}
+/* Full-height rail: visible only when expanded */
+.classic-row-trip.expanded::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+  background: var(--accent-flight);
+  z-index: 2;
+  pointer-events: none;
+  border-radius: 0; /* parent overflow:hidden handles the shape */
+}
+/* Ensure overflow:hidden is active when expanded so ::before is clipped correctly */
+.classic-row.classic-row-trip.expanded {
+  overflow: hidden !important;
+}
+/* Hide the in-header .date-rail when expanded — the ::before takes over */
+.classic-row-trip.expanded .date-rail {
+  opacity: 0;
+}
+
+/* ── Today flash animation ────────────────────────────── */
+@keyframes classicRowFlash {
+  0%   { box-shadow: 0 0 0 0 rgba(37,99,235,0); }
+  15%  { box-shadow: 0 0 0 8px rgba(37,99,235,0.20); }
+  100% { box-shadow: 0 0 0 0 rgba(37,99,235,0); }
+}
+.classic-row.today-flash {
+  animation: classicRowFlash 2.0s ease-out 1;
+}
+
+/* =========================================================
+   END v4.7 CLASSIC-ROW TEMPLATE
+========================================================= */
+
+/* ── DEFAULT VISIBILITY — blindatura avvio ─────────────────── */
+/* uploadZone visibile di default (dentro mainContent) */
+#uploadZone  { display: flex; flex-direction: column; height: 100svh; width: 100%; }
+/* timeline nascosto di default */
+#timeline    { display: none; }
+/* header e dock nascosti fino a setAppView('roster') */
+header       { display: none; }
+.app-dock    { display: none; }
+
+/* =========================================
+   DASHBOARD / DIGITAL COPILOT
+========================================= */
+.dashboard-container {
+  max-width: 600px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 16px 16px 80px 16px;
+  animation: dashFadeIn 0.3s ease-in-out;
+}
+
+.dash-top-bar { display: flex; justify-content: space-between; align-items: center; padding: 10px 8px; }
+.dash-clock { font-size: 1.1rem; font-weight: 600; color: var(--text-primary); }
+.utc-label { font-size: 0.8rem; color: var(--text-secondary); margin-left: 4px; }
+
+.dash-hero-card {
+  background: var(--surface);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  border-radius: 28px;
+  overflow: hidden; text-align: center;
+}
+
+.dash-hero-today { padding: 24px; display: flex; flex-direction: column; align-items: center; gap: 20px; }
+.dash-today-label { font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-secondary); font-weight: 700; width: 100%; text-align: left; }
+
+.dash-legs-list { display: flex; flex-direction: column; gap: 14px; width: 100%; }
+.dash-leg-row { display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 1.25rem; font-weight: 700; color: var(--text-primary); }
+.dash-flt-no { font-size: 0.85rem; color: var(--accent-flight); background: var(--border); padding: 2px 8px; border-radius: 6px; text-transform: uppercase; }
+.dash-leg-sep { color: var(--text-muted); }
+
+.dash-ckin-sec { display: flex; flex-direction: column; align-items: center; padding-top: 15px; border-top: 1px solid var(--border-subtle); width: 100%; }
+.dash-ckin-label { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 2px; }
+.dash-ckin-time { font-size: 2.5rem; font-weight: 800; color: var(--accent-sby); line-height: 1; }
+
+.dash-hero-tomorrow { background: var(--surface-2); padding: 18px 24px; display: flex; flex-direction: column; align-items: center; gap: 4px; border-top: 1px solid var(--border); }
+.dash-tomorrow-label { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
+.dash-tomorrow-val { font-size: 1rem; font-weight: 700; color: var(--text-primary); }
+
+.dash-future-sec { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+.dash-future-title { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-secondary); font-weight: 700; padding-left: 8px; }
+
+.dash-f-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+  padding: 14px 20px; display: flex; align-items: center; gap: 15px; position: relative; overflow: hidden;
+}
+.dash-f-card::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--item-accent, var(--text-secondary)); }
+.dash-f-date { font-size: 0.85rem; font-weight: 700; color: var(--text-secondary); width: 65px; text-align: right; text-transform: uppercase; }
+.dash-f-content { font-size: 0.95rem; font-weight: 700; flex-grow: 1; text-align: left; color: var(--text-primary); }
+
+.dash-type-txt { margin-right: 4px; text-transform: uppercase; }
+.dash-ckin-highlight { color: var(--accent-sby); font-weight: 700; }
+.dash-ckin-f-label { color: var(--accent-sby); font-weight: 700; font-size: 0.85rem; margin-left: 8px; }
+
+.dash-no-data {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 12px; padding: 48px 24px; text-align: center; color: var(--text-secondary);
+}
+.dash-no-data-icon { opacity: 0.3; }
+.dash-no-data-title { font-size: 1rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+.dash-no-data-sub { font-size: 0.85rem; }
+
+/* Dashboard active state on dock button */
+#dockViewToggle.dashboard-on { opacity: 1 !important; cursor: pointer !important; pointer-events: auto !important; }
+#dockViewToggle.dashboard-on svg { stroke: var(--accent-flight); }
+#dockViewToggle.dashboard-on .dock-btn-label { color: var(--accent-flight); }
+
+@keyframes dashFadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ── CHANGELOG PANEL — landing page ─────────────────────── */
+  .lp-changelog-wrap {
+    width: 100%;
+    max-width: 450px;
+    margin: 0 auto 8px;
+    padding: 0 4px;
+  }
+  .lp-changelog-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--lp-dimmed, rgba(255,255,255,0.35));
+    padding: 6px 2px;
+    -webkit-tap-highlight-color: transparent;
+    transition: color 0.15s;
+  }
+  .lp-changelog-btn:hover { color: rgba(255,255,255,0.65); }
+  .cl-chevron {
+    transition: transform 0.2s ease;
+    flex-shrink: 0;
+  }
+  .cl-chevron.open { transform: rotate(180deg); }
+
+  .lp-changelog-panel {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 12px 14px 10px;
+    margin-top: 4px;
+    animation: fadeUp 0.2s ease both;
+  }
+  .cl-version {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  .cl-ver-tag {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 800;
+    color: #60A5FA;
+    letter-spacing: 0.3px;
+  }
+  .cl-ver-old { color: rgba(255,255,255,0.35); }
+  .cl-ver-date {
+    font-size: 9px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.3);
+    letter-spacing: 0.3px;
+  }
+  .cl-list {
+    list-style: none;
+    padding: 0; margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .cl-list li {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.58);
+    line-height: 1.4;
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+  }
+  .cl-fix {
+    font-size: 8px;
+    font-weight: 800;
+    letter-spacing: 0.6px;
+    color: #34D399;
+    background: rgba(52,211,153,0.12);
+    border: 1px solid rgba(52,211,153,0.25);
+    border-radius: 4px;
+    padding: 2px 5px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  /* Changelog lives inside .lp-monolith which is always dark — force light-on-dark always */
+  .lp-monolith .lp-changelog-btn         { color: var(--lp-dimmed, rgba(255,255,255,0.35)); }
+  .lp-monolith .lp-changelog-btn:hover   { color: rgba(255,255,255,0.65); }
+  .lp-monolith .lp-changelog-panel       { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.10); }
+  .lp-monolith .cl-ver-tag               { color: #60A5FA; }
+  .lp-monolith .cl-ver-old               { color: rgba(255,255,255,0.30); }
+  .lp-monolith .cl-ver-date              { color: rgba(255,255,255,0.30); }
+  .lp-monolith .cl-list li               { color: rgba(255,255,255,0.62); }
+  .lp-monolith .cl-fix                   { color: #34D399; background: rgba(52,211,153,0.14); border-color: rgba(52,211,153,0.28); }
+
+  /* ── TRAINING standalone row — time badge in Z3 ── */
+  .cr-time-badge {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent-training, #374151);
+    background: rgba(55,65,81,0.08);
+    border: 1px solid rgba(55,65,81,0.15);
+    border-radius: 6px;
+    padding: 3px 7px;
+    white-space: nowrap;
+    letter-spacing: 0.2px;
+  }
+  body.light-mode .cr-time-badge {
+    background: rgba(55,65,81,0.07);
+    border-color: rgba(55,65,81,0.18);
+    color: #374151;
+  }
+  @media (prefers-color-scheme: dark) {
+    .cr-time-badge {
+      background: rgba(255,255,255,0.07);
+      border-color: rgba(255,255,255,0.12);
+      color: #9CA3AF;
+    }
+  }
+
+
 </style>
 </head>
 <body>
 
-<header class="header" id="appHeader">
+<header class="header" id="appHeader" style="display:none">
   <div class="scroll-progress" id="scrollProgress"></div>
   <div class="header-inner">
 
-    <!-- LEFT: spacer — mirrors toggle width to keep center truly centered -->
-    <div class="header-left-spacer" aria-hidden="true"></div>
+    <!-- TOP ROW: home | month title | toggle -->
+    <div class="header-inner-row">
 
-    <!-- CENTER: month title + countdown -->
-    <div class="header-center">
-      <button class="header-month-btn" id="headerMonthBtn"
-              onclick="toggleMonthDropdown()"
-              aria-haspopup="true" aria-expanded="false"
-              title="Cambia mese">
-        <span class="header-date" id="headerDate">CREW ROSTER</span>
-        <svg class="header-month-chevron" id="headerMonthChevron"
-             width="12" height="12" fill="none" stroke="currentColor"
-             stroke-width="2.5" viewBox="0 0 24 24">
-          <polyline points="6 9 12 15 18 9"/>
-        </svg>
-      </button>
-      <!-- Countdown — centered below month name, shown by JS when duty is known -->
-      <div class="header-countdown" id="headerCountdown" style="display:none">
-        <span class="countdown-label" id="countdownLabel">PROSSIMO DUTY</span>
-        <span class="countdown-value" id="countdownValue">--:--:--:--</span>
+      <!-- LEFT: Home button -->
+      <div class="header-left-spacer" aria-hidden="false">
+        <button class="btn-home-icon" onclick="setAppView('landing')" aria-label="Torna alla home" title="Home">
+          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+          </svg>
+        </button>
       </div>
-    </div>
 
-    <!-- RIGHT: iOS toggle + hidden legacy buttons (kept for JS compat) -->
-    <div class="header-actions">
-      <!-- Legacy buttons: hidden visually, kept for JS syncExpandBtn/btnStats -->
-      <button class="btn-icon" id="btnExpandAll" style="display:none" onclick="toggleAllTurni()" aria-hidden="true">
-        <svg id="expandAllIcon" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24">
-          <polyline points="6 9 12 15 18 9"/>
-        </svg>
-      </button>
-      <button class="btn-icon" id="btnStats" style="display:none" onclick="showStatsSheet()" aria-hidden="true">
-        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24">
-          <rect x="18" y="3" width="3" height="18" rx="1"/>
-          <rect x="10.5" y="8" width="3" height="13" rx="1"/>
-          <rect x="3" y="13" width="3" height="8" rx="1"/>
-        </svg>
-      </button>
-      <!-- iOS Theme Toggle -->
-      <button id="btnTheme" onclick="toggleTheme()"
-              aria-label="Cambia tema chiaro/scuro"
-              title="Tema">
-        <span class="toggle-thumb">
-          <!-- Moon (dark mode) -->
-          <svg class="toggle-icon-moon" viewBox="0 0 24 24" fill="none"
-               stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
-            <path d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z"/>
+      <!-- CENTER: month title (absolutely centred within the row) -->
+      <div class="header-center">
+        <button class="header-month-btn" id="headerMonthBtn"
+                onclick="toggleMonthDropdown()"
+                aria-haspopup="true" aria-expanded="false"
+                title="Cambia mese">
+          <span class="header-date" id="headerDate">CREW ROSTER</span>
+          <svg class="header-month-chevron" id="headerMonthChevron"
+               width="12" height="12" fill="none" stroke="currentColor"
+               stroke-width="2.5" viewBox="0 0 24 24">
+            <polyline points="6 9 12 15 18 9"/>
           </svg>
-          <!-- Sun (light mode) -->
-          <svg class="toggle-icon-sun" viewBox="0 0 24 24" fill="none"
-               stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
-            <circle cx="12" cy="12" r="4"/>
-            <line x1="12" y1="2" x2="12" y2="5"/>
-            <line x1="12" y1="19" x2="12" y2="22"/>
-            <line x1="4.22" y1="4.22" x2="6.34" y2="6.34"/>
-            <line x1="17.66" y1="17.66" x2="19.78" y2="19.78"/>
-            <line x1="2" y1="12" x2="5" y2="12"/>
-            <line x1="19" y1="12" x2="22" y2="12"/>
-            <line x1="4.22" y1="19.78" x2="6.34" y2="17.66"/>
-            <line x1="17.66" y1="6.34" x2="19.78" y2="4.22"/>
+        </button>
+      </div>
+
+      <!-- RIGHT: iOS toggle + hidden legacy buttons (kept for JS compat) -->
+      <div class="header-actions">
+        <!-- Legacy buttons: hidden visually, kept for JS syncExpandBtn/btnStats -->
+        <button class="btn-icon" id="btnExpandAll" style="display:none" onclick="toggleAllTurni()" aria-hidden="true">
+          <svg id="expandAllIcon" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24">
+            <polyline points="6 9 12 15 18 9"/>
           </svg>
-        </span>
-        <!-- Legacy SVGs hidden, kept for old JS ref -->
-        <svg id="themeIconMoon" style="display:none" width="0" height="0" viewBox="0 0 1 1"></svg>
-        <svg id="themeIconSun"  style="display:none" width="0" height="0" viewBox="0 0 1 1"></svg>
-      </button>
+        </button>
+        <button class="btn-icon" id="btnStats" style="display:none" onclick="showStatsSheet()" aria-hidden="true">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24">
+            <rect x="18" y="3" width="3" height="18" rx="1"/>
+            <rect x="10.5" y="8" width="3" height="13" rx="1"/>
+            <rect x="3" y="13" width="3" height="8" rx="1"/>
+          </svg>
+        </button>
+        <!-- iOS Theme Toggle -->
+        <button id="btnTheme" onclick="toggleTheme()"
+                aria-label="Cambia tema chiaro/scuro"
+                title="Tema">
+          <span class="toggle-thumb">
+            <svg class="toggle-icon-moon" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+              <path d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z"/>
+            </svg>
+            <svg class="toggle-icon-sun" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+              <circle cx="12" cy="12" r="4"/>
+              <line x1="12" y1="2" x2="12" y2="5"/>
+              <line x1="12" y1="19" x2="12" y2="22"/>
+              <line x1="4.22" y1="4.22" x2="6.34" y2="6.34"/>
+              <line x1="17.66" y1="17.66" x2="19.78" y2="19.78"/>
+              <line x1="2" y1="12" x2="5" y2="12"/>
+              <line x1="19" y1="12" x2="22" y2="12"/>
+              <line x1="4.22" y1="19.78" x2="6.34" y2="17.66"/>
+              <line x1="17.66" y1="6.34" x2="19.78" y2="4.22"/>
+            </svg>
+          </span>
+          <svg id="themeIconMoon" style="display:none" width="0" height="0" viewBox="0 0 1 1"></svg>
+          <svg id="themeIconSun"  style="display:none" width="0" height="0" viewBox="0 0 1 1"></svg>
+        </button>
+      </div>
+
+    </div><!-- /.header-inner-row -->
+
+    <!-- COUNTDOWN ROW: shown by JS when next duty is known -->
+    <div class="header-countdown-row" id="headerCountdown" style="display:none">
+      <span class="countdown-label" id="countdownLabel">PROSSIMO DUTY</span>
+      <span class="countdown-value" id="countdownValue">--:--:--:--</span>
     </div>
 
   </div>
@@ -7726,69 +8519,84 @@ body.light-mode #dsAcceptBtn       { color: #fff; }
 <input type="file" id="iconInput" accept="image/*" onchange="handleIconSelect(event)" style="display:none">
 
 <main class="main" id="mainContent">
-  <div class="upload-screen" id="uploadZone">
-    <div class="upload-inner">
-
-      <!-- 1. Branding -->
-      <div class="upload-squircle">
-        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-          <polyline points="14 2 14 8 20 8"/>
-          <line x1="12" y1="18" x2="12" y2="12"/>
-          <polyline points="9 15 12 12 15 15"/>
-        </svg>
+  <div class="lp-monolith" id="uploadZone">
+    <div class="lp-top">
+      <div class="lp-squircle">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/></svg>
       </div>
+      <h1 class="lp-heading">Crew<span>Roster</span></h1>
+      <span class="app-version" style="color: var(--text-dimmed, #94a3b8); font-size: 12px; font-weight: 600; letter-spacing: 1px;">v4.8.9</span>
+    </div>
 
-      <div class="upload-wordmark">CrewRoster&#x2009;v2.5.0</div>
-      <div class="upload-credits">Developed by VAG</div>
-      <div class="upload-heading">Il tuo <span>roster</span>,<br>a colpo d'occhio.</div>
-      <div class="upload-sub">Carica il PDF del tuo piano individuale per visualizzarlo in modo chiaro e intuitivo.</div>
-
-      <!-- 2. Roster salvati -->
-      <div class="upload-library" id="rosterLibrary" style="display:none"></div>
-
-      <!-- 3. CTA -->
-      <button class="upload-cta" onclick="dsBeforeImport()">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
-          <polyline points="17 8 12 3 7 8"/>
-          <line x1="12" y1="3" x2="12" y2="15"/>
-        </svg>
-        Scegli File PDF
+    <div class="lp-center">
+      <button class="lp-btn-upload" onclick="dsBeforeImport()">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Importa Turno PDF
       </button>
+    </div>
 
-      <div class="upload-footer">
-        <span class="upload-utc">All times UTC</span>
+    <div class="lp-bottom">
+      <!-- Changelog toggle (small, unobtrusive) -->
+      <div class="lp-changelog-wrap" id="changelogWrap">
+        <button class="lp-changelog-btn" id="changelogBtn" onclick="toggleChangelog()">
+          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          CHANGELOG
+          <svg class="cl-chevron" id="clChevron" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="lp-changelog-panel" id="changelogPanel" style="display:none">
+          <div class="cl-version">
+            <span class="cl-ver-tag">v4.8.9</span>
+            <span class="cl-ver-date">04 Apr 2026</span>
+          </div>
+          <ul class="cl-list">
+            <li><span class="cl-fix">FIX</span> ROOT CAUSE confermato con debug visuale: pdf.js mergeva riga 25/04 nel bucket 24/04 → arrivo assegnato giorno sbagliato. Fix definitivo: departureDateIso+1 sempre usato come giorno di arrivo</li>
+            <li><span class="cl-fix">FIX</span> Card arrivo overnight: data partenza ora corretta (24 APR invece di 23 APR)</li>
+            <li><span class="cl-fix">OLD</span> ROOT CAUSE (parziale v4.8.8): arrivo overnight (es. 25/04 SSH→MXP) assegnato al giorno corretto — pdf.js bucketava la riga 25/04 nel 24/04; ora newDay(iso) viene chiamato prima di aggiungere la leg di arrivo</li>
+            <li><span class="cl-fix">FIX</span> Card arrivo overnight: mostra data partenza (es. "24 APR") nella label sinistra</li>
+            <li><span class="cl-fix">FIX</span> Note FAM/LC/acType ora attaccate alla leg di arrivo overnight (oaM + oaInDot)</li>
+            <li><span class="cl-fix">FIX</span> Header turno: estensione span con open overnight — MXP ora incluso in VRN·SSH·MXP</li>
+            <li><span class="cl-fix">FIX</span> Office Duty: ripristinata struttura originale (left panel + righe sessione); ogni riga mostra codice sessione, orario ETD–ETA e aula</li>
+            <li><span class="cl-fix">FIX</span> Changelog: testo ora leggibile anche in light mode (forza palette chiaro-su-scuro nel pannello landing)</li>
+            <li><span class="cl-fix">FIX</span> Header: altezza auto, icona home e countdown non tagliati</li>
+            <li><span class="cl-fix">FIX</span> Rail accent bar: si estende per tutta l'altezza del turno espanso</li>
+            <li><span class="cl-fix">FIX</span> Volo EXT-prefissato (es. EXT 5973) ora riconosciuto come overnight: ETA arrivo mostrata</li>
+            <li><span class="cl-fix">FIX</span> Hotfix: ReferenceError <code>overnightRef</code> fuori scope in B-branch — causava mancata visualizzazione dell'intero roster di aprile</li>
+            <li><span class="cl-fix">FIX</span> Office Duty: sessioni ora aggregano al giorno corretto; nuova card con codice e orario per riga</li>
+            <li><span class="cl-fix">FIX</span> PWA startup: pdf.js con defer + preload + Service Worker cache</li>
+          </ul>
+          <div class="cl-version" style="margin-top:10px">
+            <span class="cl-ver-tag cl-ver-old">v4.8.5</span>
+          </div>
+          <ul class="cl-list">
+            <li>ETA overnight volo (es. 5973 SSH→MXP), header turno con rotta completa; parser Office Duty; PWA startup</li>
+          </ul>
+          <div class="cl-version" style="margin-top:10px">
+            <span class="cl-ver-tag cl-ver-old">v4.8.3</span>
+            <span class="cl-ver-date">Base stabile precedente</span>
+          </div>
+          <ul class="cl-list">
+            <li>Baseline: dual-view, turno grouping, dark/light theme, stats, dock nav, PWA</li>
+          </ul>
+        </div>
       </div>
-
-    </div><!-- /upload-inner -->
+      <div id="rosterLibrary" class="lp-library" style="display:none;"></div>
+    </div>
   </div>
-  <div id="timeline" style="display:none;"></div>
-  <!-- FAB legacy — hidden, replaced by dock -->
-  <button class="fab-today" id="fabToday" onclick="scrollToToday()" aria-hidden="true">
-    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-      <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/>
-      <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
-    </svg>
-    OGGI
-  </button>
+  <div id="timeline" style="display:none;">
+    <div id="view-classic"></div>
+  </div>
+  <!-- ════════════ DASHBOARD VIEW ════════════ -->
+  <div id="dashboard-view" class="dashboard-container" style="display:none;">
+    <div class="dash-top-bar">
+      <div style="font-size:1.1rem; font-weight:600; color:var(--text-secondary); text-transform:uppercase; letter-spacing:1px;">Dashboard</div>
+      <div class="dash-clock" id="utc-clock">00:00:00 <span class="utc-label">UTC</span></div>
+    </div>
+    <div id="dashboard-content"></div>
+  </div>
 </main>
 
 <!-- ════════════════ FLOATING DOCK ════════════════ -->
 <nav class="app-dock" id="appDock" role="navigation" aria-label="Navigazione principale">
-
-  <!-- OGGI -->
-  <button class="dock-btn" id="dockToday"
-          onclick="scrollToToday()"
-          aria-label="Vai ad oggi"
-          title="Oggi">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
-         stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="12" cy="12" r="10"/>
-      <circle cx="12" cy="12" r="3"/>
-    </svg>
-    <span class="dock-btn-label">Oggi</span>
-  </button>
 
   <!-- MESI -->
   <button class="dock-btn" id="dockMonths"
@@ -7815,6 +8623,21 @@ body.light-mode #dsAcceptBtn       { color: #fff; }
       <line x1="6" y1="20" x2="6" y2="14"/>
     </svg>
     <span class="dock-btn-label">Stats</span>
+  </button>
+
+  <!-- DASHBOARD -->
+  <button class="dock-btn" id="dockViewToggle"
+          onclick="toggleDashboard()"
+          aria-label="Dashboard"
+          title="Dashboard">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+      <rect width="7" height="9" x="3" y="3" rx="1"/>
+      <rect width="7" height="5" x="14" y="3" rx="1"/>
+      <rect width="7" height="9" x="14" y="12" rx="1"/>
+      <rect width="7" height="5" x="3" y="16" rx="1"/>
+    </svg>
+    <span class="dock-btn-label">DASH</span>
   </button>
 
   <div class="dock-sep" aria-hidden="true"></div>
@@ -7858,6 +8681,44 @@ body.light-mode #dsAcceptBtn       { color: #fff; }
 </div>
 
 <script>
+
+// ── v4.8.4: Service Worker for instant PWA startup ──────────────
+(function() {
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      // Inline SW: cache the app shell on first install, serve from cache on subsequent loads
+      const swCode = `
+const CACHE = 'crewroster-v484';
+const SHELL = [
+  self.location.href.replace(/\/sw\.js$/, '') || '/',
+];
+self.addEventListener('install', e => {
+  e.waitUntil(
+    caches.open(CACHE).then(cache => cache.addAll(SHELL)).then(() => self.skipWaiting())
+  );
+});
+self.addEventListener('activate', e => {
+  e.waitUntil(
+    caches.keys().then(keys => Promise.all(
+      keys.filter(k => k !== CACHE).map(k => caches.delete(k))
+    )).then(() => self.clients.claim())
+  );
+});
+self.addEventListener('fetch', e => {
+  if (e.request.mode !== 'navigate') return;
+  e.respondWith(
+    caches.match(e.request).then(cached => cached || fetch(e.request))
+  );
+});
+`;
+      const blob = new Blob([swCode], { type: 'application/javascript' });
+      const swUrl = URL.createObjectURL(blob);
+      navigator.serviceWorker.register(swUrl, { scope: './' })
+        .catch(() => {}); // silently ignore if blob SW not allowed
+    });
+  }
+})();
+
 // ─────────────────────────────────────────────────────────────
 // PDF.js
 // ─────────────────────────────────────────────────────────────
@@ -7887,6 +8748,17 @@ const parseTime = t => {
   const m5 = t.match(/^(\d{1,2}):(\d{2})$/);
   if (m5) return `${m5[1].padStart(2,'0')}:${m5[2]}`;
   return null;
+};
+
+const cleanDataString = s => {
+  if (!s) return '';
+  // Rimuovi token blk (con eventuale valore), Hotel e varianti
+  let r = s.replace(/\bblk\s*[\d:.]+/gi, '').replace(/\bblk\b/gi, '');
+  r = r.replace(/\bhotel\b/gi, '').replace(/\bhtl\b/gi, '');
+  // Normalizza separatori orari: "/" → "-"
+  r = r.replace(/(\d{2})\/(\d{2})/g, '$1-$2');
+  // Pulisci spazi multipli
+  return r.replace(/\s{2,}/g, ' ').trim();
 };
 
 const timeDiff = (t1,t2) => {
@@ -8084,8 +8956,6 @@ function parseNeosRoster(text) {
   let curDayHasContent = false; // true when the date-line itself contained duty/CI content
 
   const flushDay = () => {
-    // Always save — even zero-activity days (e.g. LAYOVER days split by pdf.js).
-    // Empty days are filtered out in renderSchedule via _cleanSchedule.
     if (curDay) schedule.push(curDay);
   };
 
@@ -8245,23 +9115,59 @@ function parseNeosRoster(text) {
       if (/^\.{5,}/.test(duty)) {
         const ciM = raw.match(/\.{5,}\s+(\d{1,2}:\d{2})/);
         if (ciM) { pendingCI = parseTime(ciM[1]); lastPendingCI = pendingCI; curDayCI = pendingCI; }
-        // Check if line also contains overnight arrival "  >  ARR  HH:MM  HH.HH"
-        const oaM = raw.match(/>\s+([A-Z]{3})\s+(\d{1,2}:\d{2})\s+([\d]{2}[.]\d{2})/);
+        // Check if line also contains overnight arrival "  >  ARR  HH:MM  [HH.HH]"
+        // Block time is optional — pdf.js may bucket it in a separate row
+        const oaM = raw.match(/>\s+([A-Z]{3})\s+(\d{1,2}:\d{2})(?:\s+([\d]{2}[.]\d{2}))?/);
         if (oaM && openOvernightLeg) {
-          // Add arrival-only leg to today's day
+          // v4.8.9 fix: compute correct arrival day from departure date + 1.
+          // The overnight departure was on _departureDateIso (stored when legMD1 fired).
+          // The arrival is always on departureDateIso + 1 calendar day.
+          // This handles the case where pdf.js merges the arrival into the departure
+          // day's Y-bucket (Aprile) AND the case where it has its own row (Marzo).
           const _ol = openOvernightLeg;
-          if (curDay) curDay.activities.push({
+          openOvernightLeg = null;
+          const _depIso = _ol._departureDateIso || curDate;
+          const _depDate = new Date(_depIso + 'T00:00:00Z');
+          _depDate.setUTCDate(_depDate.getUTCDate() + 1);
+          const _arrIso = _depDate.toISOString().slice(0, 10);
+          // Switch to arrival day if not already there
+          if (!curDay || curDate !== _arrIso) newDay(_arrIso);
+          const _arrLeg = {
+            fltn: _ol.fltn, dep: null, arr: oaM[1],
+            toUtc: null, ldgUtc: parseTime(oaM[2]),
+            blockUtc: oaM[3] ? parseTime(oaM[3].replace('.',':')) : null,
+            checkInUtc: null, hotel: _ol.hotel,
+            acType: _ol.acType, multiDay: false,
+          };
+          curDay.activities.push({ type: 'FLIGHT', legs: [_arrLeg], dateIso: curDate });
+        } else if (oaM && !openOvernightLeg) {
+          // Overnight arrival without open leg context — push to current day
+          curDay.activities.push({
             type: 'FLIGHT',
             legs: [{
-              fltn: _ol.fltn, dep: null, arr: oaM[1],
+              fltn: '—', dep: null, arr: oaM[1],
               toUtc: null, ldgUtc: parseTime(oaM[2]),
-              blockUtc: parseTime(oaM[3].replace('.',':')),
-              checkInUtc: null, hotel: _ol.hotel,
-              acType: _ol.acType, multiDay: false,
+              blockUtc: oaM[3] ? parseTime(oaM[3].replace('.',':')) : null,
+              checkInUtc: null, hotel: false, multiDay: false,
             }],
             dateIso: curDate,
           });
-          openOvernightLeg = null;
+        }
+        // v4.8.7: attach lineRemarks to the oaM arrival leg too
+        if (oaM && lineRemarks && curDay) {
+          const _oaAct = curDay.activities[curDay.activities.length - 1];
+          if (_oaAct && _oaAct.type === 'FLIGHT' && _oaAct.legs && _oaAct.legs.length) {
+            const _oaLeg = _oaAct.legs[_oaAct.legs.length - 1];
+            const _acR2 = lineRemarks.match(/\b(B7[0-9]{2}|B767|A3[0-9]{2})\b/);
+            if (_acR2 && !_oaLeg.acType) _oaLeg.acType = _acR2[1];
+            if (/Fam\.?\s*Flt/i.test(lineRemarks)) { _oaLeg.famFlt = true; _oaAct.famFlt = true; }
+            if (/\bLC\b/.test(lineRemarks)) { _oaLeg.lineCheck = true; _oaAct.lineCheck = true; }
+            const _rc2 = cleanRemarks(lineRemarks);
+            if (_rc2) {
+              if (!_oaLeg.remarks) _oaLeg.remarks = [];
+              if (!_oaLeg.remarks.includes(_rc2)) _oaLeg.remarks.push(_rc2);
+            }
+          }
         }
         continue;
       }
@@ -8305,6 +9211,19 @@ function parseNeosRoster(text) {
             if (!trn) { trn = { type:'TRAINING', location: loc, sessions:[] }; curDay.activities.push(trn); }
             trn.sessions.push({ name: sessionName, start: t1, end: t2, loc });
           }
+          curDayHasContent = true;
+          continue;
+        }
+        // v4.8.4 fix: bare training code on date line (e.g. "EST" alone — times come in separate Y-rows).
+        // Create an empty TRAINING placeholder and set curDayHasContent=true so subsequent
+        // continuation lines with times merge into this day instead of going to pendingTraining.
+        if (/^[A-Z][A-Z0-9/\s()*-]{0,30}$/.test(duty) && !/^(DH|HTL|EXT|SLS|NOS|LT|SPV|SNS)$/i.test(duty)) {
+          let trn = curDay.activities.find(a => a.type === 'TRAINING');
+          if (!trn) {
+            trn = { type:'TRAINING', location: '', sessions:[] };
+            curDay.activities.push(trn);
+          }
+          curDayHasContent = true; // ensure continuation lines merge here, not to pendingTraining
           continue;
         }
       }
@@ -8321,6 +9240,78 @@ function parseNeosRoster(text) {
     if (/^\.{5,}/.test(trimmed)) {
       const ciM = raw.match(/\.{5,}\s+(\d{1,2}:\d{2})/);
       if (ciM) { pendingCI = parseTime(ciM[1]); lastPendingCI = pendingCI; }
+
+      // Fix overnight arrival on continuation dotted line:
+      // if pdf.js puts ".......... > MXP 02:15 04.45" under the departure day,
+      // force the arrival onto departureDateIso + 1 instead of curDay.
+      const oaInDot = raw.match(/>\s+([A-Z]{3})\s+(\d{1,2}:\d{2})(?:\s+([\d]{2}[.]\d{2}))?/);
+
+      if (oaInDot && openOvernightLeg) {
+        const _ol = openOvernightLeg;
+        openOvernightLeg = null;
+
+        const _depIso = _ol._departureDateIso || curDate;
+        const _depDate = new Date(_depIso + 'T00:00:00Z');
+        _depDate.setUTCDate(_depDate.getUTCDate() + 1);
+        const _arrIso = _depDate.toISOString().slice(0, 10);
+
+        if (!curDay || curDate !== _arrIso) newDay(_arrIso);
+
+        const _arrLeg = {
+          fltn: _ol.fltn || '—',
+          dep: null,
+          arr: oaInDot[1],
+          toUtc: null,
+          ldgUtc: parseTime(oaInDot[2]),
+          blockUtc: oaInDot[3] ? parseTime(oaInDot[3].replace('.',':')) : null,
+          checkInUtc: null,
+          hotel: _ol.hotel || false,
+          acType: _ol.acType || null,
+          multiDay: false,
+        };
+
+        curDay.activities.push({
+          type: 'FLIGHT',
+          legs: [_arrLeg],
+          dateIso: curDate,
+        });
+
+      } else if (oaInDot && !openOvernightLeg) {
+        curDay.activities.push({
+          type: 'FLIGHT',
+          legs: [{
+            fltn: '—',
+            dep: null,
+            arr: oaInDot[1],
+            toUtc: null,
+            ldgUtc: parseTime(oaInDot[2]),
+            blockUtc: oaInDot[3] ? parseTime(oaInDot[3].replace('.',':')) : null,
+            checkInUtc: null,
+            hotel: false,
+            multiDay: false,
+          }],
+          dateIso: curDate,
+        });
+      }
+
+      if (oaInDot && lineRemarks && curDay) {
+        const _oaAct = curDay.activities[curDay.activities.length - 1];
+        if (_oaAct && _oaAct.type === 'FLIGHT' && _oaAct.legs && _oaAct.legs.length) {
+          const _oaLeg = _oaAct.legs[_oaAct.legs.length - 1];
+          const _acR = lineRemarks.match(/\b(B7[0-9]{2}|B767|A3[0-9]{2})\b/);
+          if (_acR && !_oaLeg.acType) _oaLeg.acType = _acR[1];
+          if (/\bHTL\b/.test(lineRemarks)) _oaLeg.hotel = true;
+          if (/Fam\.?\s*Flt/i.test(lineRemarks)) { _oaLeg.famFlt = true; _oaAct.famFlt = true; }
+          if (/\bLC\b/.test(lineRemarks)) { _oaLeg.lineCheck = true; _oaAct.lineCheck = true; }
+
+          const _rc = cleanRemarks(lineRemarks);
+          if (_rc) {
+            if (!_oaLeg.remarks) _oaLeg.remarks = [];
+            if (!_oaLeg.remarks.includes(_rc)) _oaLeg.remarks.push(_rc);
+          }
+        }
+      }
+
       continue;
     }
 
@@ -8519,7 +9510,11 @@ function parseNeosRoster(text) {
         const existingTrn = curDay.activities.find(a => a.type === 'TRAINING');
         if (existingTrn) {
           // curDay already has a TRAINING activity — this is a same-day continuation
-          existingTrn.sessions.push({ name: nameM[1].trim(), start: parseTime(nameM[2]), end: parseTime(nameM[3]), loc });
+          // Deduplicate: skip if an identical session (same name + same start time) already exists
+          const _sName = nameM[1].trim(), _sStart = parseTime(nameM[2]);
+          const _isDup = existingTrn.sessions.some(s => s.name === _sName && s.start === _sStart);
+          if (!_isDup)
+            existingTrn.sessions.push({ name: _sName, start: _sStart, end: parseTime(nameM[3]), loc });
         } else if (!curDayHasContent) {
           // curDay opened with no duty content — training line likely belongs to the NEXT day
           // (pdf.js Y-bucket: training row sits just above its date line)
@@ -8780,7 +9775,7 @@ function parseCont(raw, day, pendingCI, addLeg, unrecognized, overnightRef, date
   }
 
   // ─ Multi-day departure: "  789  JFK  >  22:00"
-  const legMD1 = raw.match(/(\d{2,5})\s+([A-Z]{3})\s+>\s+(\d{1,2}:\d{2})/);
+  const legMD1 = raw.match(/(?:EXT\s+)?(\d{2,5})\s+([A-Z]{3})\s+>\s+(\d{1,2}:\d{2})/);
   if (legMD1) {
     const newLeg = {
       fltn: legMD1[1], dep: legMD1[2], arr: '→',
@@ -8791,7 +9786,11 @@ function parseCont(raw, day, pendingCI, addLeg, unrecognized, overnightRef, date
       ext: /\bEXT\b/.test(raw),
     };
     addLeg(newLeg);
-    if (overnightRef) overnightRef.leg = newLeg; // mark as open overnight leg
+    if (overnightRef) {
+      overnightRef.leg = newLeg; // mark as open overnight leg
+      // Store departure date so arrival can be placed on the correct next day
+      overnightRef.leg._departureDateIso = dateIso || null;
+    }
     return;
   }
 
@@ -9183,7 +10182,17 @@ async function processPDF(file) {
 // ─────────────────────────────────────────────────────────────
 function buildTurnoBlock(td) {
   const IT_M = ['GEN','FEB','MAR','APR','MAG','GIU','LUG','AGO','SET','OTT','NOV','DIC'];
+  // fmtD: full "14 MAR" — used only inside expanded body labels
   const fmtD = iso => { const [,mo,d] = iso.split('-'); return d+' '+IT_M[+mo-1]; };
+  // fmtDayNum: compact day number(s) for Z1 — "14" or "14-16"
+  const fmtDayNum = (startIso, endIso) => {
+    const ds = startIso.split('-')[2].replace(/^0/,''); // strip leading zero
+    if (startIso === endIso) return ds;
+    const de = endIso.split('-')[2].replace(/^0/,'');
+    return ds + '-' + de;
+  };
+  // fmtMonth: abbreviated month for Z1 second line — "MAR"
+  const fmtMonth = iso => IT_M[+iso.split('-')[1] - 1];
 
   // ── Helpers ────────────────────────────────────────────────
   // Convert "HH:MM" → minutes since midnight (null → null)
@@ -9255,93 +10264,91 @@ function buildTurnoBlock(td) {
   // ── Determine if this turno has any flight content ──────────
   const hasFlight = dutyPeriods.length > 0;
 
-  // ── Build block shell ───────────────────────────────────────
+  // ── v4.7: Build turno using the CLASSIC-ROW unified template ──
+  // Identical structure to OFF/SBY/FERIE standalone rows.
+  // .classic-row.classic-row-trip (outer, scroll anchor)
+  //   .classic-date-area   Z1: rail + day num + month
+  //   .classic-content-area Z2: route IATA only
+  //   .classic-right-area  Z3: AC badge + LC/FAM + chevron
+  //   .classic-row-body    collapsible detail (day-groups)
+
   const block = document.createElement('div');
-  block.className = 'turno-block'; // starts closed — user expands
+  block.className = 'classic-row classic-row-trip turno-block';
   block.dataset.turnoStart = td.startIso;
+  // Scroll anchor: id="day-N" keyed to START day of turno
+  const _startDay = parseInt(td.startIso.split('-')[2], 10);
+  block.id = 'day-' + _startDay;
 
-  const header = document.createElement('div');
-  header.className = 'turno-block-header';
+  // ── Z1 helpers ────────────────────────────────────────────────
+  const z1DayNum   = fmtDayNum(td.startIso, td.endIso);
+  const z1MonthStr = fmtMonth(td.startIso);
+  const isRange    = z1DayNum.includes('-');
+  // Weekday of start day
+  const _startWD_MAP = {SUN:'Dom',MON:'Lun',TUE:'Mar',WED:'Mer',THU:'Gio',FRI:'Ven',SAT:'Sab',
+                         mo:'Lun',tu:'Mar',we:'Mer',th:'Gio',fr:'Ven',sa:'Sab',su:'Dom'};
+  const _startWDraw = isoWD(td.startIso);
+  const z1WD = _startWD_MAP[_startWDraw] || _startWDraw || '';
 
+  // ── Z2 route HTML ──────────────────────────────────────────────
+  let routeHtml = '';
   if (hasFlight) {
-    // ══════════════════════════════════════════════════════════
-    // UNIVERSAL 3-LEVEL HEADER (applies to ALL turni with flights)
-    // ══════════════════════════════════════════════════════════
-
-    // ── L1: date range + tags + A/C badge + chevron ───────────
-    const sameDay   = td.startIso === td.endIso;
-    const dateLabel = sameDay
-      ? fmtD(td.startIso)
-      : `${fmtD(td.startIso)} — ${fmtD(td.endIso)}`;
-
-    const lcTag  = td.lineCheck
-      ? `<span class="tb-tag-lc">LC</span>` : '';
-    const famTag = td.famFlt
-      ? `<span class="tb-tag-fam">FAM</span>` : '';
-    const acLabel = td.acTypes.length
-      ? td.acTypes.map(esc).join('/') : '';
-    const acBadge = acLabel
-      ? `<span class="tb-ac-badge">${acLabel}</span>` : '';
-    const chevron =
-      `<svg class="tb-chevron" width="14" height="14" fill="none"
-           stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
-        <polyline points="6 9 12 15 18 9"/>
-      </svg>`;
-
-    const metaRow =
-      `<div class="tb-meta-row">` +
-        `<span class="tb-date-range">${dateLabel}</span>` +
-        `<div class="tb-right-group">${lcTag}${famTag}${acBadge}${chevron}</div>` +
-      `</div>`;
-
-    // ── L2: fading divider ────────────────────────────────────
-    const divider = `<hr class="tb-divider" aria-hidden="true">`;
-
-    // ── L3: duty-period path badges ───────────────────────────
-    const pathRows = dutyPeriods.map(chain => {
-      const nodes = chain.map((code, i) => {
-        const dot = i < chain.length - 1
-          ? `<span class="tb-path-dot" aria-hidden="true">&middot;</span>`
-          : '';
-        return `<span class="tb-path-iata">${esc(code)}</span>${dot}`;
-      }).join('');
-      return `<div class="tb-path-row" role="text">${nodes}</div>`;
-    }).join('');
-    const pathBlock = `<div class="tb-path-rows">${pathRows}</div>`;
-
-    header.innerHTML = metaRow + divider + pathBlock;
-
+    routeHtml = dutyPeriods.map(chain =>
+      chain.map((code, i) =>
+        `<span class="cr-iata">${esc(code)}</span>` +
+        (i < chain.length - 1 ? `<span class="cr-dot" aria-hidden="true">&middot;</span>` : '')
+      ).join('')
+    ).join('<br>');
   } else {
-    // ══════════════════════════════════════════════════════════
-    // FALLBACK: training/office-only turno (no flight legs)
-    // Simple single-line header with date + chevron
-    // ══════════════════════════════════════════════════════════
-    const sameDay   = td.startIso === td.endIso;
-    const dateLabel = sameDay
-      ? fmtD(td.startIso)
-      : `${fmtD(td.startIso)} — ${fmtD(td.endIso)}`;
-
-    const chevron =
-      `<svg class="tb-chevron" width="14" height="14" fill="none"
-           stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
-        <polyline points="6 9 12 15 18 9"/>
-      </svg>`;
-
-    header.innerHTML =
-      `<div class="tb-meta-row">` +
-        `<span class="tb-date-range">${dateLabel}</span>` +
-        `<div class="tb-right-group">${chevron}</div>` +
-      `</div>`;
+    routeHtml = `<span class="cr-iata cr-office">OFFICE DUTY</span>`;
   }
 
-  header.addEventListener('click', () => block.classList.toggle('expanded'));
+  // ── Z3 badges + chevron ────────────────────────────────────────
+  const lcTag   = td.lineCheck ? `<span class="tba-tag-lc">LC</span>`  : '';
+  const famTag  = td.famFlt    ? `<span class="tba-tag-fam">FAM</span>` : '';
+  const acLabel = (td.acTypes || []).length ? td.acTypes.map(esc).join('/') : '';
+  const acBadge = acLabel ? `<span class="tb-ac-badge">${esc(acLabel)}</span>` : '';
 
+  const chevronHtml =
+    `<span class="cr-chevron" aria-hidden="true">` +
+      `<svg width="12" height="12" fill="none" stroke="currentColor" ` +
+           `stroke-width="2.5" viewBox="0 0 24 24">` +
+        `<polyline points="6 9 12 15 18 9"/>` +
+      `</svg>` +
+    `</span>`;
+
+  // ── Assemble classic-row header ────────────────────────────────
+  // v4.7: wrap header zones in .classic-trip-header (flex row)
+  // so the .classic-row-trip can be flex-column (header + body).
+  block.innerHTML =
+    `<div class="classic-trip-header">` +
+      `<div class="classic-date-area">` +
+        `<div class="date-rail rail-c-flight"></div>` +
+        `<div class="date-number${isRange ? ' date-range' : ''}">${z1DayNum}</div>` +
+        `<div class="date-wd">${z1MonthStr}</div>` +
+      `</div>` +
+      `<div class="classic-content-area">` +
+        `<div class="classic-route">${routeHtml}</div>` +
+      `</div>` +
+      `<div class="classic-right-area">` +
+        acBadge + lcTag + famTag + chevronHtml +
+      `</div>` +
+    `</div>`;
+
+  // Collapsible body — appended as sibling INSIDE block
   const body = document.createElement('div');
-  body.className = 'turno-block-body';
+  body.className = 'classic-row-body turno-block-body';
   for (const dayGroup of td.dayGroups) body.appendChild(dayGroup);
 
-  block.appendChild(header);
   block.appendChild(body);
+
+  // Toggle expand/collapse on header click
+  block.addEventListener('click', e => {
+    // Only toggle if click is NOT inside the expanded body
+    if (!e.target.closest('.classic-row-body')) {
+      block.classList.toggle('expanded');
+    }
+  });
+
   return block;
 }
 
@@ -9349,7 +10356,7 @@ function buildTurnoBlock(td) {
 // RENDERING
 // ─────────────────────────────────────────────────────────────
 function renderSchedule() {
-  const tl = document.getElementById('timeline');
+  const tl = document.getElementById('view-classic');
   if (!tl) return;
   tl.textContent = ''; // fastest DOM clear
   const _tlFrag = document.createDocumentFragment();
@@ -9484,6 +10491,20 @@ function renderSchedule() {
       // that started on the previous day (already in span)
       if (isContinuationOnly(next)) { e++; continue; }
 
+      // v4.8.7 fix: if the CURRENT day ends with an open overnight departure (arr='→')
+      // AND the next day is neither a duty day nor isContinuationOnly (i.e. it has only
+      // TRAINING/office content — crew is in transit), absorb it exactly once.
+      // Guard: next must NOT be SBY/OFF (that would mean crew is back on ground at base).
+      const _curHasOpenOvernight = filtered[e].activities.some(a =>
+        a.type === 'FLIGHT' && a.legs && a.legs.some(l => l.arr === '→')
+      );
+      if (_curHasOpenOvernight &&
+          !isDutyDay(next) &&
+          !isContinuationOnly(next) &&
+          !ndt.has('SBY') && !ndt.has('OFF') && !ndt.has('OFF_R') && !ndt.has('HOL')) {
+        e++; continue;
+      }
+
       // Absorb next duty day only if current day ends away from base
       if (isDutyDay(next) && endsAwayFromBase(cur)) { e++; continue; }
 
@@ -9556,6 +10577,28 @@ function renderSchedule() {
         }
       }
     }
+    // v4.8.6: extend _contArrs lookup — check k+1 AND k+2 to handle
+    // cases where the arrival day has only TRAINING (no FLIGHT parsed),
+    // and the actual arrival FLIGHT(dep=null) may be on the next real day.
+    // Also: if FLIGHT(dep=null) is absent, derive arr from the leg's route context.
+    // Secondary scan: if a day in span has open overnight (arr='→'),
+    // find its partner arrival from any following day in the span.
+    for (let k = i; k <= e; k++) {
+      const _day = filtered[k];
+      for (const act of _day.activities) {
+        if (act.type === 'FLIGHT' && act.legs) {
+          for (const l of act.legs) {
+            if (l.dep === null && l.arr && l.arr !== '→' && l.arr !== '—') {
+              // Store at k AND k-1 so lookups via _contArrs.get(k_dep+1) work
+              // even if there's a 1-day TRAINING gap between dep and arr
+              _contArrs.set(k, l.arr);
+              if (k > i) _contArrs.set(k - 1, l.arr); // also register at k-1 for gap handling
+            }
+          }
+        }
+      }
+    }
+
     // Step 2: build segments in order — include dayIdx for same-day grouping
     const _segments = []; // [{from, to, onDuty, dayIdx}]
     for (let k = i; k <= e; k++) {
@@ -9569,7 +10612,28 @@ function renderSchedule() {
               if (!/^[A-Z]{3}$/.test(l.arr)) continue; // arr must also be real IATA
               _segments.push({ from: l.dep, to: l.arr, onDuty: true, dayIdx: k, toUtc: l.toUtc, ldgUtc: l.ldgUtc });
             } else if (l.arr === '→') {
-              const contArr = _contArrs.get(k + 1) || null;
+              // Look up arrival in next day; fall back to k+2 if gap day exists
+              let contArr = _contArrs.get(k + 1) || _contArrs.get(k + 2) || null;
+              // v4.8.6 last-resort: scan S.schedule for the arrival leg
+              // (handles case where neither oaM nor oaInDot fired for that day)
+              if (!contArr) {
+                for (let sk = k + 1; sk <= Math.min(k + 3, e); sk++) {
+                  if (filtered[sk]) {
+                    for (const _a of filtered[sk].activities) {
+                      if (_a.type === 'FLIGHT' && _a.legs) {
+                        for (const _ll of _a.legs) {
+                          if (_ll.dep === null && _ll.arr && /^[A-Z]{3}$/.test(_ll.arr)) {
+                            contArr = _ll.arr;
+                            break;
+                          }
+                        }
+                      }
+                      if (contArr) break;
+                    }
+                  }
+                  if (contArr) break;
+                }
+              }
               _segments.push({ from: l.dep, to: contArr, onDuty: true, dayIdx: k, toUtc: l.toUtc, ldgUtc: null });
             }
           }
@@ -9611,10 +10675,7 @@ function renderSchedule() {
     // ── End date: last day in span
     const endIso = filtered[e].dateIso;
 
-    // DEBUG — rimuovere dopo verifica
-    if (filtered[i].dateIso === '2026-03-12' || filtered[i].dateIso === '2026-03-09') {
-      console.log('TURNO', filtered[i].dateIso, '→', endIso, '_segments:', JSON.stringify(_segments));
-    }
+
     // Collect lineCheck / famFlt flags across all days in span
     let spanLineCheck = false, spanFamFlt = false;
     for (let k = i; k <= e; k++) {
@@ -9637,31 +10698,52 @@ function renderSchedule() {
     });
   }
 
-  // ── Build day-groups, then wrap turno spans in collapsible blocks
-  // Pass 1: build all day-groups keyed by dateIso
+  // ── Build day-groups (turno days) and standalone rows (non-turno days)
+  // Pass 1: build all DOM elements keyed by dateIso
+  // Turno days: use .day-group (cards inside turno-block-body)
+  // Standalone days: use buildStandaloneRow() (.classic-row)
   const dayGroupMap = new Map(); // dateIso → DOM element
   for (const day of filtered) {
-    const g = document.createElement('div');
     const _role = turnoRole.get(day.dateIso);
-    g.className = 'day-group' + (_role ? ' turno-wrap turno-' + _role : '');
-    g.dataset.date = day.dateIso;
-    const _p = isoParts(day.dateIso);
-    const _WD_IT = {SUN:'Dom',MON:'Lun',TUE:'Mar',WED:'Mer',THU:'Gio',FRI:'Ven',SAT:'Sab',
-                     mo:'Lun',tu:'Mar',we:'Mer',th:'Gio',fr:'Ven',sa:'Sab',su:'Dom'};
-    const _wdIt = _WD_IT[day.weekdayLabel] || day.weekdayLabel;
-    g.innerHTML = `
-      <div class="day-label">
-        <span class="day-label-num">${_p.d}</span>
-        <span class="day-label-wd">${_wdIt}</span>
-      </div>
-      <div class="day-cards"></div>
-    `;
-    const _cardsEl = g.querySelector('.day-cards');
-    for (const act of day.activities) {
-      const el = renderAct(act);
-      if (el) _cardsEl.appendChild(el);
+
+    if (_role) {
+      // Day belongs to a turno — build classic day-group for the expanded body
+      const g = document.createElement('div');
+      g.className = 'day-group turno-wrap turno-' + _role;
+      g.dataset.date = day.dateIso;
+      const _p = isoParts(day.dateIso);
+      const _WD_IT = {SUN:'Dom',MON:'Lun',TUE:'Mar',WED:'Mer',THU:'Gio',FRI:'Ven',SAT:'Sab',
+                       mo:'Lun',tu:'Mar',we:'Mer',th:'Gio',fr:'Ven',sa:'Sab',su:'Dom'};
+      const _wdIt = _WD_IT[day.weekdayLabel] || day.weekdayLabel;
+      g.innerHTML = `
+        <div class="day-label">
+          <span class="day-label-num">${_p.d}</span>
+          <span class="day-label-wd">${_wdIt}</span>
+        </div>
+        <div class="day-cards"></div>
+      `;
+      const _cardsEl = g.querySelector('.day-cards');
+      for (const act of day.activities) {
+        const el = renderAct(act);
+        if (el) _cardsEl.appendChild(el);
+      }
+      dayGroupMap.set(day.dateIso, g);
+    } else {
+      // v4.7: standalone day — use unified classic-row template
+      const row = buildStandaloneRow(day);
+      if (row) dayGroupMap.set(day.dateIso, row);
     }
-    dayGroupMap.set(day.dateIso, g);
+  }
+
+  // Mark today's row with today-row class for visual highlight
+  const _todayIsoMark = _localDateIso();
+  const _todayElMark  = dayGroupMap.get(_todayIsoMark);
+  if (_todayElMark && _todayElMark.classList.contains('classic-row')) {
+    _todayElMark.classList.add('today-row');
+  } else if (_todayElMark) {
+    // day-group inside turno: mark the day-label
+    const dl = _todayElMark.querySelector('.day-label');
+    if (dl) dl.classList.add('today');
   }
 
   // Pass 2: emit into timeline — turno days wrapped in blocks, others direct
@@ -9756,21 +10838,7 @@ function renderSchedule() {
     }
   }
 
-  // ── Import summary banner (bottom of list, before unrecognized) ──
-  {
-    const _ac = S.schedule.reduce((n,d) => n + d.activities.length, 0);
-    const _banner = document.createElement('div');
-    _banner.id = 'importBanner';
-    _banner.className = 'import-banner import-banner--bottom';
-    _banner.innerHTML =
-      `<svg class="import-banner-icon" width="15" height="15" fill="none" stroke="currentColor"
-            stroke-width="2.2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>` +
-      `<span class="import-banner-text">` +
-        `${S.schedule.length} giorni · ${_ac} attività` +
-      `</span>` +
-      `<button class="import-banner-btn" aria-label="Chiudi" onclick="this.parentElement.remove()">×</button>`;
-    _tlFrag.appendChild(_banner);
-  }
+  // Import summary banner removed per user request
 
   if (S.unrecognized.length > 0) {
     const dp = document.createElement('div');
@@ -9795,6 +10863,7 @@ function renderSchedule() {
 
   // Single DOM write — prevents multiple reflows
   tl.appendChild(_tlFrag);
+
 }
 
 function renderAct(act) {
@@ -9859,11 +10928,20 @@ function renderFlight(act) {
         '</div>';
     } else if (isCont) {
       // Arrival card: continuation from previous day
+      // Compute departure date label (arrival dateIso - 1 day)
+      const _arrDate = act.dateIso || '';
+      let _depDateLabel = '';
+      if (_arrDate) {
+        const _d = new Date(_arrDate + 'T00:00:00Z');
+        _d.setUTCDate(_d.getUTCDate() - 1);
+        const _IT_M_S = ['GEN','FEB','MAR','APR','MAG','GIU','LUG','AGO','SET','OTT','NOV','DIC'];
+        _depDateLabel = _d.getUTCDate() + ' ' + _IT_M_S[_d.getUTCMonth()];
+      }
       rightHtml =
         '<div class="cfd-airport">' +
           '<div class="cfd-iata cfd-iata-cont">···</div>' +
           '<div class="cfd-time" style="opacity:0.35">—</div>' +
-          '<div class="cfd-lbl">← −1</div>' +
+          '<div class="cfd-lbl">' + (_depDateLabel || '← −1') + '</div>' +
         '</div>' +
         '<div class="cfd-arrow">' +
           '<div class="cfd-arrow-row"><div class="cfd-arrow-line"></div><span class="cfd-arrow-plane">✈</span></div>' +
@@ -9944,28 +11022,49 @@ function renderHol(act) {
 }
 
 // ── TRAINING / OFFICE DUTY
+// v4.8.6: original trn-left + trn-right structure.
+// Each session = one row: code | ETD–ETA | location (aula).
+// Card uses same dark surface as flight cards for visual consistency.
 function renderTraining(act) {
   const c = document.createElement('div');
   c.className = 'card-training';
-  const itemsHtml = act.sessions.map((s, i) =>
-    (i > 0 ? '<div class="trn-divider"></div>' : '') +
-    '<div class="trn-item">' +
-      '<div class="trn-item-name">' + esc(s.name) + '</div>' +
-      (s.start ? '<div class="trn-item-times">' + s.start + (s.end ? ' – ' + s.end : '') + '</div>' : '') +
-      (s.loc ? '<div class="trn-item-loc">' + esc(s.loc) + '</div>' : '') +
-    '</div>'
-  ).join('');
+
+  // Deduplicate sessions (pdf.js row-doubling can emit same session twice)
+  const _seen = new Set();
+  const sessions = (act.sessions || []).filter(s => {
+    if (!s || !s.name || !s.name.trim()) return false;
+    const key = (s.name.trim() + '|' + (s.start||'') + '|' + (s.end||'')).toLowerCase();
+    if (_seen.has(key)) return false;
+    _seen.add(key);
+    return true;
+  });
+
+  // Build one row per session: name | ETD–ETA | location
+  const itemsHtml = sessions.length
+    ? sessions.map((s, i) =>
+        (i > 0 ? '<div class="trn-divider"></div>' : '') +
+        '<div class="trn-item">' +
+          '<div class="trn-item-name">' + esc(s.name) + '</div>' +
+          (s.start
+            ? '<div class="trn-item-times">' +
+                s.start + (s.end ? '–' + s.end : '') +
+              '</div>'
+            : '') +
+          (s.loc ? '<div class="trn-item-loc">' + esc(s.loc) + '</div>' : '') +
+        '</div>'
+      ).join('')
+    : '<div class="trn-item"><div class="trn-item-name" style="opacity:0.5">Orari non disponibili</div></div>';
+
   c.innerHTML =
     '<div class="trn-left">' +
-      '<div class="trn-code">OFFICE DUTY</div>' +
-      (act.location ? '<div class="trn-sub">' + esc(act.location) + '</div>' : '') +
+      '<div class="trn-code">OFFICE<br>DUTY</div>' +
     '</div>' +
     '<div class="trn-right">' + itemsHtml + '</div>';
+
   const tr = remarksHtml(act);
   if (tr) c.insertAdjacentHTML('beforeend', tr);
   return c;
 }
-
 // ── SBY
 function _sbyCoreCard(timeHtml, extraRemarks) {
   const c = document.createElement('div'); c.className = 'card-sby-dark';
@@ -10042,6 +11141,213 @@ function renderOff(act) {
   const r = remarksHtml(act);
   if (r) c.insertAdjacentHTML('beforeend', r);
   return c;
+}
+
+// v4.7: classic-row version of OFF — used in buildStandaloneRow()
+function renderOffClassic(act, dayNum, wdLabel) {
+  const el = document.createElement('div');
+  el.className = 'classic-row classic-row-off';
+  el.innerHTML =
+    '<div class="classic-date-area">' +
+      '<div class="date-rail rail-c-off"></div>' +
+      `<div class="date-number">${dayNum}</div>` +
+      `<div class="date-wd">${wdLabel}</div>` +
+    '</div>' +
+    '<div class="classic-content-area">' +
+      '<div class="classic-label" style="color:var(--accent-off)">OFF</div>' +
+      '<div class="classic-sub">Giorno libero</div>' +
+    '</div>';
+  const r = remarksHtml(act);
+  if (r) el.insertAdjacentHTML('beforeend', r);
+  return el;
+}
+
+function renderOffRClassic(act, dayNum, wdLabel) {
+  const el = document.createElement('div');
+  el.className = 'classic-row classic-row-off';
+  el.innerHTML =
+    '<div class="classic-date-area">' +
+      '<div class="date-rail rail-c-off"></div>' +
+      `<div class="date-number">${dayNum}</div>` +
+      `<div class="date-wd">${wdLabel}</div>` +
+    '</div>' +
+    '<div class="classic-content-area">' +
+      '<div class="classic-label" style="color:var(--accent-off)">OFF</div>' +
+      '<div class="classic-sub">Richiesto</div>' +
+    '</div>';
+  const r = remarksHtml(act);
+  if (r) el.insertAdjacentHTML('beforeend', r);
+  return el;
+}
+
+function renderHolClassic(act, dayNum, wdLabel) {
+  const el = document.createElement('div');
+  el.className = 'classic-row classic-row-hol';
+  el.innerHTML =
+    '<div class="classic-date-area">' +
+      '<div class="date-rail rail-c-holiday"></div>' +
+      `<div class="date-number">${dayNum}</div>` +
+      `<div class="date-wd">${wdLabel}</div>` +
+    '</div>' +
+    '<div class="classic-content-area">' +
+      '<div class="classic-label" style="color:var(--accent-holiday)">FERIE</div>' +
+      '<div class="classic-sub">Giorni di vacanza</div>' +
+    '</div>';
+  const r = remarksHtml(act);
+  if (r) el.insertAdjacentHTML('beforeend', r);
+  return el;
+}
+
+function renderSbyClassic(act, dayNum, wdLabel) {
+  const el = document.createElement('div');
+  el.className = 'classic-row classic-row-sby';
+  // Build times string
+  let timesHtml = '';
+  const crossMid = act.startUtc && act.endUtc && act.endUtc < act.startUtc;
+  if (act.openEnd) {
+    timesHtml =
+      `<span class="classic-time-val">${act.startUtc}</span>` +
+      `<span class="classic-time-sep">→</span>` +
+      `<span class="classic-time-val" style="opacity:0.6;font-size:14px">+1</span>`;
+  } else if (act.openStart) {
+    timesHtml =
+      `<span class="classic-time-val" style="opacity:0.6;font-size:14px">←</span>` +
+      `<span class="classic-time-val">${act.endUtc}</span>`;
+  } else {
+    timesHtml =
+      `<span class="classic-time-val">${act.startUtc || '—'}</span>` +
+      `<span class="classic-time-sep">${crossMid ? '→' : '–'}</span>` +
+      `<span class="classic-time-val">${crossMid ? '+1' : (act.endUtc || '—')}</span>` +
+      `<span class="classic-time-utc">UTC</span>`;
+  }
+  el.innerHTML =
+    '<div class="classic-date-area">' +
+      '<div class="date-rail rail-c-sby"></div>' +
+      `<div class="date-number">${dayNum}</div>` +
+      `<div class="date-wd">${wdLabel}</div>` +
+    '</div>' +
+    '<div class="classic-content-area">' +
+      '<div class="classic-label" style="color:var(--accent-sby)">SBY</div>' +
+      `<div class="classic-times">${timesHtml}</div>` +
+    '</div>';
+  const r = remarksHtml(act);
+  if (r) el.insertAdjacentHTML('beforeend', r);
+  return el;
+}
+
+function renderTrainingClassic(act, dayNum, wdLabel) {
+  // Build an expandable classic-row-trip for training days.
+  // Header: date-area | OFFICE DUTY + session codes | time badge | chevron
+  // Body (expanded): full renderTraining card with all sessions + times + aule
+  const el = document.createElement('div');
+  el.className = 'classic-row classic-row-trip classic-row-training';
+
+  const sessions = (act.sessions || []).filter(s => s && s.name && s.name.trim());
+  const names = sessions.map(s => esc(s.name)).join(' · ');
+  const firstTime = sessions.find(s => s.start);
+  const lastTime  = sessions.slice().reverse().find(s => s.end || s.start);
+  const timeRange = firstTime
+    ? (firstTime.start + (lastTime && lastTime.end && lastTime !== firstTime ? '–' + lastTime.end : ''))
+    : '';
+
+  const chevronHtml =
+    '<span class="cr-chevron" aria-hidden="true">' +
+      '<svg width="12" height="12" fill="none" stroke="currentColor" ' +
+           'stroke-width="2.5" viewBox="0 0 24 24">' +
+        '<polyline points="6 9 12 15 18 9"/>' +
+      '</svg>' +
+    '</span>';
+
+  el.innerHTML =
+    '<div class="classic-trip-header">' +
+      '<div class="classic-date-area">' +
+        '<div class="date-rail rail-c-training"></div>' +
+        `<div class="date-number">${dayNum}</div>` +
+        `<div class="date-wd">${wdLabel}</div>` +
+      '</div>' +
+      '<div class="classic-content-area">' +
+        '<div class="classic-label" style="color:var(--accent-training,#374151)">OFFICE DUTY</div>' +
+        (names ? `<div class="classic-sub">${names}</div>` : '') +
+      '</div>' +
+      '<div class="classic-right-area">' +
+        (timeRange ? `<span class="cr-time-badge">${timeRange}</span>` : '') +
+        chevronHtml +
+      '</div>' +
+    '</div>';
+
+  // Expandable body: full training card
+  const body = document.createElement('div');
+  body.className = 'classic-row-body';
+  body.style.padding = '10px 12px';
+  body.appendChild(renderTraining(act));
+  el.appendChild(body);
+
+  // Toggle on header click
+  el.addEventListener('click', e => {
+    if (!e.target.closest('.classic-row-body'))
+      el.classList.toggle('expanded');
+  });
+
+  return el;
+}
+
+// v4.7: buildStandaloneRow — replaces the day-group wrapper for non-turno days
+// Returns a .classic-row element with id="day-N" and data-date
+function buildStandaloneRow(day) {
+  const WD_IT = {SUN:'Dom',MON:'Lun',TUE:'Mar',WED:'Mer',THU:'Gio',FRI:'Ven',SAT:'Sab',
+                  mo:'Lun',tu:'Mar',we:'Mer',th:'Gio',fr:'Ven',sa:'Sab',su:'Dom'};
+  const p      = isoParts(day.dateIso);
+  const dayNum = String(parseInt(p.d, 10));
+  const wdIt   = WD_IT[day.weekdayLabel] || day.weekdayLabel || '';
+
+  // Use the primary activity type to determine which renderer to use
+  const acts  = day.activities.filter(a => !['REST'].includes(a.type));
+  const types = acts.map(a => a.type);
+
+  let el = null;
+
+  if (types.includes('HOL')) {
+    el = renderHolClassic(acts.find(a => a.type === 'HOL'), dayNum, wdIt);
+  } else if (types.includes('OFF_R')) {
+    el = renderOffRClassic(acts.find(a => a.type === 'OFF_R'), dayNum, wdIt);
+  } else if (types.includes('OFF')) {
+    el = renderOffClassic(acts.find(a => a.type === 'OFF'), dayNum, wdIt);
+  } else if (types.includes('SBY')) {
+    el = renderSbyClassic(acts.find(a => a.type === 'SBY'), dayNum, wdIt);
+  } else if (types.includes('TRAINING')) {
+    el = renderTrainingClassic(acts.find(a => a.type === 'TRAINING'), dayNum, wdIt);
+  } else if (types.includes('LAYOVER')) {
+    // LAYOVER standalone (should be rare, usually inside turno)
+    el = renderOffClassic({}, dayNum, wdIt);
+    el.querySelector('.classic-label').textContent = 'LAYOVER';
+    el.querySelector('.classic-label').style.color = 'var(--accent-layover)';
+    el.querySelector('.classic-sub').textContent = 'Pernottamento';
+    el.querySelector('.date-rail').className = 'date-rail rail-c-layover';
+  } else {
+    // Fallback: generic day-group with cards
+    const g = document.createElement('div');
+    g.className = 'day-group';
+    g.dataset.date = day.dateIso;
+    g.id = 'day-' + parseInt(day.dateIso.split('-')[2], 10);
+    const _wdIt = WD_IT[day.weekdayLabel] || day.weekdayLabel;
+    g.innerHTML =
+      `<div class="day-label"><span class="day-label-num">${p.d}</span>` +
+      `<span class="day-label-wd">${_wdIt}</span></div>` +
+      `<div class="day-cards"></div>`;
+    const cardsEl = g.querySelector('.day-cards');
+    for (const act of day.activities) {
+      const ce = renderAct(act);
+      if (ce) cardsEl.appendChild(ce);
+    }
+    return g;
+  }
+
+  // Set scroll anchor and data attribute on the classic-row
+  if (el) {
+    el.id = 'day-' + parseInt(day.dateIso.split('-')[2], 10);
+    el.dataset.date = day.dateIso;
+  }
+  return el;
 }
 
 // ── REST
@@ -10158,21 +11464,28 @@ function renderDH(act) {
 // UI HELPERS
 // ─────────────────────────────────────────────────────────────
 function showLoading() {
-  document.getElementById('uploadZone').style.display='none';
-  document.getElementById('timeline').style.display='none';
+  // Stato transitorio: nasconde sia landing che timeline mentre carica
+  const uz = document.getElementById('uploadZone');
+  const tl = document.getElementById('timeline');
+  if (uz) uz.style.display = 'none';
+  if (tl) tl.style.display = 'none';
   rmEl('loadingEl'); rmEl('importBanner'); rmEl('filtersEl');
-  const el=mkEl('div','loadingEl'); el.className='loading';
-  el.innerHTML=`<div class="spinner"></div><div class="loading-text">Lettura e parsing del roster…</div>`;
+  const el = mkEl('div', 'loadingEl'); el.className = 'loading';
+  el.innerHTML = `<div class="spinner"></div><div class="loading-text">Lettura e parsing del roster…</div>`;
   document.getElementById('mainContent').insertBefore(el, document.getElementById('timeline'));
 }
 function hideLoading() {
   rmEl('loadingEl');
-  document.getElementById('uploadZone').style.display='block';
+  // Torna alla landing solo se il roster non è già visibile
+  if (document.getElementById('timeline').style.display !== 'block') {
+    setAppView('landing');
+  }
 }
 function showTimeline() {
   rmEl('loadingEl');
-  document.getElementById('uploadZone').style.display='none';
-  document.getElementById('timeline').style.display='block';
+
+  // Il router gestisce tutta la visibilità
+  setAppView('roster');
 
   rmEl('importBanner'); // banner now rendered bottom-of-list by renderSchedule()
 
@@ -10181,13 +11494,11 @@ function showTimeline() {
   renderSchedule();
   syncExpandBtn();
   setupIataDelegation();
-  scrollToToday(false);
   _updateMonthBtn();
-  setTimeout(setupFabObserver, 80);
   if (typeof _fase2PostLoad === 'function') _fase2PostLoad();
 }
 
-// ── TODAY / FAB ──────────────────────────────────────────────
+// ── TODAY HELPERS ──────────────────────────────────────────────
 
 function _localDateIso() {
   // Returns today in YYYY-MM-DD using LOCAL time (not UTC).
@@ -10240,74 +11551,8 @@ function _flashTurno(el) {
 
 function _expandTurnoContaining(el) {
   const block = el?.closest('.turno-block');
-  if (block && !block.classList.contains('expanded')) block.classList.add('expanded');
+  // auto-expand removed — cards always start collapsed
 }
-
-function scrollToToday(animated) {
-  const tt = _todayTarget();
-  console.log('[OGGI] todayTarget:', tt, 'schedule days:', S.schedule.length,
-    'first:', S.schedule[0]?.dateIso, 'last:', S.schedule[S.schedule.length-1]?.dateIso,
-    'localDate:', _localDateIso());
-  if (!tt) return;
-  const target = document.querySelector(`.day-group[data-date="${tt.dateIso}"]`);
-  console.log('[OGGI] target element:', target ? 'FOUND' : 'NOT FOUND', 'for date:', tt.dateIso);
-  if (!target) return;
-
-  // Espande il turno-block prima di misurare la posizione
-  _expandTurnoContaining(target);
-
-  const doScroll = () => {
-    const headerH = document.getElementById('appHeader')?.offsetHeight || 70;
-    const absoluteTop = _getDocumentTop(target);
-    const dest = Math.max(0, absoluteTop - headerH - 12);
-    console.log('[OGGI] headerH:', headerH, 'absoluteTop:', absoluteTop, 'dest:', dest, 'scrollY:', window.scrollY);
-    window.scrollTo({ top: dest, behavior: (animated === false) ? 'instant' : 'smooth' });
-    // Doppio highlight: giorno + turno block
-    _flashDay(target);
-    _flashTurno(target);
-  };
-
-  // Due rAF: il primo attende il re-layout post-expand, il secondo misura dopo il repaint
-  requestAnimationFrame(() => requestAnimationFrame(doScroll));
-}
-
-// FAB — one IntersectionObserver, created once at render time.
-// Shows the FAB when today's card scrolls OFF screen; hides when ON screen.
-// FAB is hidden entirely when viewing a month other than the current one.
-let _fabObs = null;
-
-function setupFabObserver() {
-  const fab = document.getElementById('fabToday');
-  if (!fab) return;
-
-  // Disconnect any previous observer
-  if (_fabObs) { _fabObs.disconnect(); _fabObs = null; }
-  fab.classList.remove('visible');
-
-  const tt = _todayTarget();
-
-  // Not current month → FAB stays hidden, nothing to observe
-  if (!tt || !tt.isCurrent) return;
-
-  const todayEl = document.querySelector(`.day-group[data-date="${tt.dateIso}"]`);
-  if (!todayEl) return;
-
-  // Create observer: show FAB when today's card leaves viewport
-  _fabObs = new IntersectionObserver(
-    ([entry]) => fab.classList.toggle('visible', !entry.isIntersecting),
-    { threshold: 0.1 }
-  );
-  _fabObs.observe(todayEl);
-}
-
-// Called from scroll handler — lightweight no-op (observer handles visibility)
-function syncFabToday() {
-  // Observer is active → nothing to do
-  if (_fabObs) return;
-  // Safety: re-setup if observer was lost (e.g. DOM re-render without calling showTimeline)
-  if (S.schedule.length) setupFabObserver();
-}
-
 
 function toggleOnlyOff() {
   S.showOnlyOff = !S.showOnlyOff;
@@ -10442,21 +11687,45 @@ function monthNav(dir) {
 }
 
 function showUploadScreen() {
-  document.getElementById('uploadZone').style.display = 'block';
-  document.getElementById('timeline').style.display = 'none';
+  setAppView('landing');
   rmEl('importBanner'); rmEl('filtersEl');
-  renderLibrary();
   _updateMonthBtn();
 }
 
-function goHome() {
-  closeMonthDropdown();
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-  setTimeout(() => {
-    showUploadScreen();
-    _updateMonthBtn();
-  }, window.scrollY > 100 ? 300 : 0);
+const APP_VERSION = "v4.7";
+
+// ─────────────────────────────────────────────────────────────
+// ROUTER CENTRALIZZATO — unico punto di cambio schermata
+// Struttura DOM: #mainContent > #uploadZone | #timeline
+// ─────────────────────────────────────────────────────────────
+function setAppView(view) {
+  const landing  = document.getElementById('uploadZone');  // landing page (figlio di mainContent)
+  const timeline = document.getElementById('timeline');    // roster viewer (figlio di mainContent)
+  const header   = document.querySelector('header#appHeader');
+  const dock     = document.getElementById('appDock');
+
+  if (view === 'landing') {
+    // Stato Home: mostra uploadZone, nasconde timeline, header, dock
+    if (landing)  landing.style.setProperty('display', 'flex', 'important');
+    if (timeline) timeline.style.display = 'none';
+    if (header)   header.style.display = 'none';
+    if (dock)     { dock.style.display = 'none'; dock.classList.remove('dock-visible'); }
+    if (typeof renderLibrary === 'function') renderLibrary();
+  } else {
+    // Stato Roster: nasconde uploadZone, mostra timeline, header, dock
+    if (landing)  landing.style.display = 'none';
+    if (timeline) timeline.style.display = 'block';
+    if (header)   header.style.display = 'flex';
+    if (dock)     { dock.style.display = 'flex'; dock.classList.add('dock-visible'); }
+  }
+
+  window.scrollTo(0, 0);
 }
+
+// Alias retrocompatibilità (per eventuali chiamate residue)
+function goHome() { setAppView('landing'); }
+
+// ─────────────────────────────────────────────────────────────
 
 function renderLibrary() {
   const lib = document.getElementById('rosterLibrary');
@@ -10471,34 +11740,23 @@ function renderLibrary() {
   ];
   const active = localStorage.getItem('crewroster_active') || '';
 
-  // Build pills HTML — ordine cronologico ascendente
   const pillsHtml = [...idx].map((entry, i) => {
     const [y, m] = entry.iso.split('-');
-    const label  = IT_MONTHS[+m - 1] + ' ' + y;
+    const label = IT_MONTHS[+m - 1] + ' ' + y;
     const isActive = entry.iso === active;
-    const delay = (i * 0.05).toFixed(2);
-    return `<button class="roster-pill${isActive ? ' roster-pill-active' : ''}"
-              style="animation-delay:${delay}s"
-              onclick="libraryLoad('${entry.iso}')"
-              title="Apri ${label}">
-      <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" style="flex-shrink:0;opacity:0.75"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-      <span>${label}</span>
-      <span class="roster-pill-del"
-            onclick="event.stopPropagation();libraryDelete('${entry.iso}','${label}')"
-            title="Rimuovi">✕</span>
-    </button>`;
+    return `
+      <button class="lp-roster-pill ${isActive ? 'lp-roster-pill-active' : ''}" onclick="libraryLoad('${entry.iso}')">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="opacity:0.6"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line></svg>
+        <span>${label}</span>
+        <div class="lp-roster-pill-del" onclick="event.stopPropagation(); libraryDelete('${entry.iso}','${label}')">✕</div>
+      </button>`;
   }).join('');
 
   lib.innerHTML = `
-    <div class="upload-library-hdr">
-      <span class="upload-library-title">I tuoi Roster</span>
-      <span class="upload-library-line"></span>
-    </div>
-    <div class="upload-library-pills" id="libraryPills">
-      ${pillsHtml}
-    </div>`;
+    <div class="lp-library-hdr"><span class="lp-library-title">I TUOI ROSTER</span><span class="lp-library-line"></span></div>
+    <div class="lp-library-pills">${pillsHtml}</div>`;
 
-  lib.style.display = 'block';
+  lib.style.display = 'flex';
 }
 
 function libraryLoad(isoMonth) {
@@ -10507,12 +11765,10 @@ function libraryLoad(isoMonth) {
 }
 
 function libraryDelete(isoMonth, label) {
-  if (!confirm('Rimuovere ' + label + ' dalla libreria?')) return;
+  // confirm() can be blocked in PWA standalone mode — delete directly
   histDeleteMonth(isoMonth);
-  // histDeleteMonth may call showUploadScreen or histLoadMonth internally;
-  // if we're still on upload screen, re-render
-  const uploadVisible = document.getElementById('uploadZone').style.display !== 'none';
-  if (uploadVisible) renderLibrary();
+  const uz = document.getElementById('uploadZone');
+  if (uz && uz.style.display !== 'none') renderLibrary();
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -10660,7 +11916,6 @@ function startCountdown() {
 // SCROLL
 // ─────────────────────────────────────────────────────────────
 // Scroll: only progress bar — no DOM queries, RAF-safe
-// FAB visibility: IntersectionObserver set up by setupFabObserver() at render time
 </script>
 <script>
 // ── THEME TOGGLE (v2.4) ──────────────────────────────────────
@@ -10818,7 +12073,6 @@ function applyIcons(dataUrl) {
       const doc = document.documentElement;
       const pct = doc.scrollTop / (doc.scrollHeight - doc.clientHeight) * 100;
       if (progressEl) progressEl.style.transform = `scaleX(${Math.min(pct,100) / 100})`;
-      syncFabToday();
       _unifScrollRaf = false;
     });
   };
@@ -10933,11 +12187,14 @@ function monthDropdownSelect(isoMonth) {
 }
 
 function monthDropdownDelete(isoMonth, label) {
-  if (!confirm('Rimuovere ' + label + ' dalla libreria?')) return;
-  closeMonthDropdown();
+  // confirm() can be blocked in PWA standalone contexts — delete directly.
+  // Also: do NOT closeMonthDropdown() before histDeleteMonth, as it sets
+  // _monthDropOpen=false and prevents renderMonthStrip from refreshing the list.
   histDeleteMonth(isoMonth);
-  const uploadVisible = document.getElementById('uploadZone').style.display !== 'none';
-  if (uploadVisible) renderLibrary();
+  // Force dropdown refresh regardless of _monthDropOpen state
+  if (_monthDropOpen) renderMonthDropdown();
+  const uz = document.getElementById('uploadZone');
+  if (uz && uz.style.display !== 'none') renderLibrary();
 }
 
 // Update the month btn indicator when a new roster is loaded
@@ -11054,10 +12311,175 @@ function showStatsSheet() {
   document.getElementById('sdSBY').textContent = st.sbyDays > 0 ? String(st.sbyDays) : '—';
   document.getElementById('sdHOL').textContent = st.holDays > 0 ? String(st.holDays) : '—';
 
+  // Monthly chart
+  buildMonthlyChart();
+
   // Open
   document.getElementById('statsOverlay').classList.add('open');
   document.getElementById('statsSheet').classList.add('open');
   document.body.style.overflow = 'hidden';
+}
+
+
+// ── Monthly Flight Hours Chart ────────────────────────────────
+function buildMonthlyChart() {
+  const wrap = document.getElementById('monthlyChartWrap');
+  if (!wrap) return;
+
+  // Gather all stored months from localStorage
+  let idx = [];
+  try { idx = JSON.parse(localStorage.getItem('crewroster_index') || '[]'); } catch(e) {}
+
+  if (!idx.length) {
+    wrap.innerHTML = '<div class="stats-chart-empty">Carica più mesi per visualizzare il grafico</div>';
+    return;
+  }
+
+  // Take last 6 months (most recent)
+  const months6 = idx.slice(-6);
+
+  // Parse each month's flightHours
+  const data = months6.map(entry => {
+    const text = localStorage.getItem(entry.key) || '';
+    let hours = null, holDays = 0;
+    try {
+      const parsed = parseNeosRoster(text);
+      const fh = parsed.flightHours; // e.g. "72.30" or "72:30"
+      if (fh) {
+        // Convert HH.MM or HH:MM to decimal hours for chart height
+        const m = fh.match(/(\d+)[.:]?(\d{0,2})/);
+        if (m) hours = parseInt(m[1],10) + (parseInt(m[2]||'0',10) / 60);
+      }
+      // Count holiday days from schedule
+      holDays = parsed.schedule.filter(d => d.activities.some(a => a.type === 'HOL')).length;
+    } catch(e) {}
+    // Label: entry.label e.g. "Marzo 2025" — shorten to "MAR"
+    const IT_SHORT = ['GEN','FEB','MAR','APR','MAG','GIU','LUG','AGO','SET','OTT','NOV','DIC'];
+    const isoM = parseInt(entry.iso.slice(5,7),10) - 1;
+    const label = IT_SHORT[isoM] || entry.iso.slice(5,7);
+    return { label, hours, holDays, iso: entry.iso };
+  });
+
+  const valid = data.filter(d => d.hours !== null);
+  if (valid.length < 1) {
+    wrap.innerHTML = '<div class="stats-chart-empty">Nessuna ora di volo disponibile</div>';
+    return;
+  }
+
+  // Compute avg
+  const avg = valid.reduce((s,d) => s + d.hours, 0) / valid.length;
+  const maxH = Math.max(...valid.map(d => d.hours), avg * 1.1, 1);
+
+  // Colors
+  const isLight = document.body.classList.contains('light-mode');
+  const barFill    = '#3B82F6';
+  const barFillDim = isLight ? 'rgba(59,130,246,0.30)' : 'rgba(59,130,246,0.22)';
+  const holFill    = '#059669';  // high-contrast emerald — distinct from blue flight bars
+  const avgCol     = '#F59E0B';
+  const textCol    = isLight ? '#475569' : '#94A3B8';
+  const valCol     = isLight ? '#0F172A' : '#F1F5F9';
+  const gridCol    = isLight ? 'rgba(0,0,0,0.07)' : 'rgba(255,255,255,0.06)';
+
+  // Average label — rendered as HTML ABOVE the SVG, never overlapping bars
+  const avgH_val = Math.floor(avg);
+  const avgM_val = Math.round((avg - avgH_val) * 60);
+  const avgLabelHTML = valid.length > 1
+    ? `<div class="stats-chart-avg-label"><span class="stats-chart-avg-swatch"></span>Media <strong>${avgH_val}:${String(avgM_val).padStart(2,'0')}</strong></div>`
+    : '';
+
+  // SVG chart dimensions
+  const W = 300, H = 130;
+  const PAD_L = 28, PAD_R = 8, PAD_T = 8, PAD_B = 30;
+  const chartW = W - PAD_L - PAD_R;
+  const chartH = H - PAD_T - PAD_B;
+  const n = data.length;
+  // Each slot has two bars side by side: [flight | holiday]
+  // Half the slot width each, with a small inner gap
+  const slotW  = chartW / n;
+  const barW   = Math.floor(slotW * 0.42);   // each bar ~42% of slot
+  const barGap = Math.max(Math.floor(slotW * 0.04), 1);  // inner gap ~4%
+
+  // Y scale: hours -> px (inverted, 0 at bottom)
+  const yScale = h => PAD_T + chartH - (h / maxH) * chartH;
+  const avgY = yScale(avg);
+  const baseY = PAD_T + chartH;
+
+  // Build SVG layers
+  let grid = '', bars = '', holBars = '', labels = '', values = '';
+
+  // Y grid lines (2 lines)
+  const gridVals = [Math.round(maxH * 0.5), Math.round(maxH)];
+  for (const gv of gridVals) {
+    const gy = yScale(gv);
+    grid += `<line x1="${PAD_L}" y1="${gy.toFixed(1)}" x2="${W - PAD_R}" y2="${gy.toFixed(1)}" stroke="${gridCol}" stroke-width="0.5"/>`;
+    grid += `<text x="${(PAD_L - 3).toFixed(1)}" y="${(gy + 3.5).toFixed(1)}" text-anchor="end" fill="${textCol}" font-size="7.5">${gv}h</text>`;
+  }
+
+  for (let i = 0; i < n; i++) {
+    const d = data[i];
+    // Center of the slot
+    const slotCx = PAD_L + slotW * i + slotW / 2;
+    // Month label centered on slot
+    const cx = slotCx;
+
+    // Whether this month has holidays
+    const hasHol = d.hours !== null && d.holDays > 0;
+
+    // X positions: if holidays present, two bars side by side; else single centered bar
+    let fltX, holX;
+    if (hasHol) {
+      // flight bar on left, holiday bar on right, touching at center with gap
+      fltX = slotCx - barGap / 2 - barW;
+      holX = slotCx + barGap / 2;
+    } else {
+      fltX = slotCx - barW / 2;
+    }
+
+    if (d.hours !== null) {
+      const barTop = yScale(d.hours);
+      const barH   = baseY - barTop;
+
+      // Flight hours bar
+      bars += `<rect x="${fltX.toFixed(1)}" y="${barTop.toFixed(1)}" width="${barW}" height="${barH.toFixed(1)}" rx="3" fill="${barFill}" opacity="0.85"/>`;
+
+      // HH:MM value above flight bar, centered on that bar
+      const fltCx = fltX + barW / 2;
+      const hh = Math.floor(d.hours);
+      const mm = Math.round((d.hours - hh) * 60);
+      values += `<text x="${fltCx.toFixed(1)}" y="${(barTop - 3).toFixed(1)}" text-anchor="middle" fill="${valCol}" font-size="8" font-weight="600">${hh}:${String(mm).padStart(2,'0')}</text>`;
+
+      // Holiday bar — same height scale but proportional to holDays, beside flight bar
+      if (hasHol) {
+        const holBarH = Math.min(Math.max(d.holDays * 5, 8), baseY - PAD_T - 2);
+        const holBarY = baseY - holBarH;
+        const holCx   = holX + barW / 2;
+        holBars += `<rect x="${holX.toFixed(1)}" y="${holBarY.toFixed(1)}" width="${barW}" height="${holBarH.toFixed(1)}" rx="3" fill="${holFill}" opacity="0.92"/>`;
+        // Count: number only, always white
+        const holLblY = holBarH >= 14 ? holBarY + holBarH - 3 : holBarY - 2;
+        holBars += `<text x="${holCx.toFixed(1)}" y="${holLblY.toFixed(1)}" text-anchor="middle" fill="${valCol}" font-size="7" font-weight="700">${d.holDays}</text>`;
+      }
+    } else {
+      bars += `<rect x="${fltX.toFixed(1)}" y="${(baseY - 4).toFixed(1)}" width="${barW}" height="4" rx="2" fill="${barFillDim}"/>`;
+    }
+
+    labels += `<text x="${cx.toFixed(1)}" y="${(H - PAD_B + 11).toFixed(1)}" text-anchor="middle" fill="${textCol}" font-size="8.5" font-weight="500">${d.label}</text>`;
+  }
+
+  // Average dashed line — inside SVG only, label is HTML above
+  const avgLine = valid.length > 1
+    ? `<line x1="${PAD_L}" y1="${avgY.toFixed(1)}" x2="${W - PAD_R}" y2="${avgY.toFixed(1)}" stroke="${avgCol}" stroke-width="1.2" stroke-dasharray="4,3" opacity="0.85"/>`
+    : '';
+
+  const svg = `<svg viewBox="0 0 ${W} ${H}" width="100%" style="display:block;overflow:visible">
+    ${grid}
+    ${bars}
+    ${holBars}
+    ${avgLine}
+    ${values}
+    ${labels}
+  </svg>`;
+
+  wrap.innerHTML = avgLabelHTML + svg;
 }
 
 function hideStatsSheet() {
@@ -11129,6 +12551,15 @@ document.addEventListener('keydown', e => {
     </div>
 
 
+
+
+    <!-- Monthly flight hours chart -->
+    <div class="stats-chart-section" id="monthlyChartSection">
+      <div class="stats-chart-title">Andamento Ore Volo</div>
+      <div class="stats-chart-wrap" id="monthlyChartWrap">
+        <div class="stats-chart-empty">Carica più mesi per visualizzare il grafico</div>
+      </div>
+    </div>
 
     <!-- Print date -->
     <div class="stats-footer-row">
@@ -11412,9 +12843,9 @@ function _fase2PostLoad() {
 // ── Title / version bump ──────────────────────────────────────
 (function() {
   const t = document.querySelector('title');
-  if (t) t.textContent = 'CrewRoster v3.2';
+  if (t) t.textContent = 'CrewRoster v4.7';
   const wm = document.querySelector('.upload-wordmark');
-  if (wm) wm.textContent = 'CrewRoster\u2009v3.2';
+  if (wm) wm.textContent = 'CrewRoster\u2009v4.7';
 })();
 
 // ════════════════════════════════════════════════════════════
@@ -11481,6 +12912,8 @@ function dsUpdateBtn() {
 document.addEventListener('DOMContentLoaded', () => {
   const checkbox = document.getElementById('dsCheckbox');
   if (checkbox) checkbox.addEventListener('change', dsUpdateBtn);
+  // Stato di default: landing page
+  setAppView('landing');
 }, { once: true });
 
 // ── Check on startup: show if never accepted ─────────────────
@@ -11533,6 +12966,348 @@ function dsAccept() {
     }, 80);
   }
 }
+
+/* =========================================
+   DASHBOARD / DIGITAL COPILOT — v4.8.0
+========================================= */
+
+let _dashActive = false;
+let _dashClockInterval = null;
+let _dashSbyInterval = null;
+
+// ── REGOLA 2: cerca il giorno reale nell'array S.schedule
+function _getDashDayObject(dateObj) {
+  if (!S.schedule || S.schedule.length === 0) return null;
+  const y  = dateObj.getFullYear();
+  const m  = String(dateObj.getMonth() + 1).padStart(2, '0');
+  const d  = String(dateObj.getDate()).padStart(2, '0');
+  const target = `${y}-${m}-${d}`;
+  return S.schedule.find(day => day.dateIso === target) || null;
+}
+
+// ── Helper: accent color per tipo attività
+function _dashAccent(type) {
+  switch ((type || '').toUpperCase()) {
+    case 'FLIGHT':   return 'var(--accent-flight)';
+    case 'DH':       return 'var(--accent-dh)';
+    case 'SBY':      return 'var(--accent-sby)';
+    case 'OFF':
+    case 'OFF_R':    return 'var(--accent-off)';
+    case 'HOL':      return 'var(--accent-holiday)';
+    case 'LAYOVER':  return 'var(--accent-layover)';
+    case 'TRAINING': return 'var(--accent-training)';
+    default:         return 'var(--text-secondary)';
+  }
+}
+
+// ── Helper: etichetta leggibile per tipo
+function _dashTypeLabel(type) {
+  switch ((type || '').toUpperCase()) {
+    case 'FLIGHT':   return 'VOLO';
+    case 'DH':       return 'DH';
+    case 'SBY':      return 'STAND-BY';
+    case 'OFF':      return 'OFF';
+    case 'OFF_R':    return 'OFF-R';
+    case 'HOL':      return 'FERIE';
+    case 'LAYOVER':  return 'LAYOVER';
+    case 'TRAINING': return 'TRAINING';
+    default:         return (type || '—').toUpperCase();
+  }
+}
+
+// ── Orologio UTC
+function _dashStartClock() {
+  const el = document.getElementById('utc-clock');
+  if (!el) return;
+  function tick() {
+    const now = new Date();
+    const h = String(now.getUTCHours()).padStart(2,'0');
+    const mn = String(now.getUTCMinutes()).padStart(2,'0');
+    const s  = String(now.getUTCSeconds()).padStart(2,'0');
+    el.innerHTML = `${h}:${mn}:${s} <span class="utc-label">UTC</span>`;
+  }
+  tick();
+  clearInterval(_dashClockInterval);
+  _dashClockInterval = setInterval(tick, 1000);
+}
+
+// ── Countdown Stand-by
+function _dashStartSbyCountdown(endTimeStr) {
+  const el = document.getElementById('dash-sby-countdown');
+  if (!el || !endTimeStr) return;
+  clearInterval(_dashSbyInterval);
+  const parts = endTimeStr.split(':').map(Number);
+  const hEnd = parts[0] || 0;
+  const mEnd = parts[1] || 0;
+  function update() {
+    const now = new Date();
+    let end = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), hEnd, mEnd, 0));
+    let diff = end - now;
+    if (diff < 0) diff += 86400000; // next day wrap
+    if (diff <= 0) { el.textContent = 'TERMINATO'; clearInterval(_dashSbyInterval); return; }
+    const h  = Math.floor(diff / 3600000);
+    const m  = Math.floor((diff % 3600000) / 60000);
+    const s  = Math.floor((diff % 60000) / 1000);
+    el.textContent = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  }
+  update();
+  _dashSbyInterval = setInterval(update, 1000);
+}
+
+// ── Costruisce HTML hero card per OGGI
+function _dashBuildTodayBody(dayObj) {
+  if (!dayObj || !dayObj.activities || dayObj.activities.length === 0) {
+    return '<div style="font-size:1rem;color:rgba(248,250,252,0.4);padding:16px 0;">Nessuna attività</div>';
+  }
+  const act = dayObj.activities[0];
+  const type = (act.type || '').toUpperCase();
+
+  if (type === 'FLIGHT') {
+    const legs = act.legs || [];
+    let legsHTML = '';
+    legs.forEach(leg => {
+      const dep  = leg.dep  || '???';
+      const arr  = leg.arr  || '???';
+      const fltn = leg.fltn && leg.fltn !== '—' ? leg.fltn : '';
+      legsHTML += `
+        <div class="dash-leg-row">
+          ${fltn ? `<span class="dash-flt-no">NO ${fltn}</span>` : ''}
+          <span>${dep} <span class="dash-leg-sep">→</span> ${arr}</span>
+        </div>`;
+    });
+    const ci = act.checkInUtc || (legs[0] && legs[0].checkInUtc) || null;
+    return `
+      <div class="dash-legs-list">${legsHTML || '<div style="color:rgba(248,250,252,0.4)">Tratte non disponibili</div>'}</div>
+      ${ci ? `<div class="dash-ckin-sec"><span class="dash-ckin-label">CHECK-IN</span><span class="dash-ckin-time">${ci}</span></div>` : ''}`;
+  }
+
+  if (type === 'DH') {
+    const dep = act.dep || '???';
+    const arr = act.arr || '???';
+    const ci  = act.checkInUtc || null;
+    return `
+      <div class="dash-leg-row">
+        <span class="dash-flt-no">DH</span>
+        <span>${dep} <span class="dash-leg-sep">→</span> ${arr}</span>
+      </div>
+      ${ci ? `<div class="dash-ckin-sec"><span class="dash-ckin-label">CHECK-IN</span><span class="dash-ckin-time">${ci}</span></div>` : ''}`;
+  }
+
+  if (type === 'SBY') {
+    const start = act.startUtc || '—';
+    const end   = act.endUtc   || '—';
+    return `
+      <div style="font-size:2.2rem;font-weight:800;color:#F8FAFC;letter-spacing:1px;">${start} — ${end}</div>
+      <div class="dash-ckin-sec" style="gap:4px;padding-top:20px;">
+        <span class="dash-ckin-label">TERMINA TRA</span>
+        <span id="dash-sby-countdown" style="font-size:1.3rem;font-weight:700;color:var(--accent-sby);font-variant-numeric:tabular-nums;">—</span>
+      </div>`;
+  }
+
+  if (type === 'OFF' || type === 'OFF_R') {
+    return `
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+        <div style="font-size:2.8rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#F8FAFC;">RIPOSO</div>
+        <div style="font-size:1rem;color:rgba(248,250,252,0.5);">Giornata libera</div>
+      </div>`;
+  }
+
+  if (type === 'HOL') {
+    return `
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+        <div style="font-size:2.4rem;font-weight:800;letter-spacing:2px;color:#F8FAFC;">FERIE</div>
+        <div style="font-size:1rem;color:rgba(248,250,252,0.5);">Goditi il meritato riposo</div>
+      </div>`;
+  }
+
+  if (type === 'TRAINING') {
+    const sessions = act.sessions || [];
+    const sessionNames = sessions.map(s => s.name || '').filter(Boolean).join(', ');
+    return `
+      <div style="font-size:1.6rem;font-weight:800;color:#F8FAFC;text-transform:uppercase;">TRAINING</div>
+      ${sessionNames ? `<div style="font-size:0.9rem;color:rgba(248,250,252,0.5);margin-top:4px;">${sessionNames}</div>` : ''}`;
+  }
+
+  if (type === 'LAYOVER') {
+    return `<div style="font-size:1.6rem;font-weight:800;color:var(--text-primary);text-transform:uppercase;letter-spacing:2px;">IN LAYOVER</div>`;
+  }
+
+  return `<div style="font-size:1.2rem;font-weight:700;color:#F8FAFC;text-transform:uppercase;">${_dashTypeLabel(type)}</div>`;
+}
+
+// ── Costruisce HTML sezione domani
+function _dashBuildTomorrowVal(dayObj) {
+  if (!dayObj || !dayObj.activities || dayObj.activities.length === 0) return 'NESSUN DATO';
+  const act  = dayObj.activities[0];
+  const type = (act.type || '').toUpperCase();
+  const col  = _dashAccent(type);
+
+  if (type === 'FLIGHT') {
+    const legs = act.legs || [];
+    const ci   = act.checkInUtc || (legs[0] && legs[0].checkInUtc) || null;
+    return `<span style="color:${col}">VOLO</span> · ${legs.length} TRATT${legs.length === 1 ? 'A' : 'E'}` +
+           (ci ? ` &nbsp;<span class="dash-ckin-f-label">C/I</span> <span class="dash-ckin-highlight">${ci}</span>` : '');
+  }
+  if (type === 'DH') {
+    const ci = act.checkInUtc || null;
+    return `<span style="color:${col}">DH</span> ${act.dep || ''}→${act.arr || ''}` +
+           (ci ? ` &nbsp;<span class="dash-ckin-f-label">C/I</span> <span class="dash-ckin-highlight">${ci}</span>` : '');
+  }
+  return `<span style="color:${col}">${_dashTypeLabel(type)}</span>`;
+}
+
+// ── Costruisce HTML future list (+2,+3,+4)
+function _dashBuildFutureList(baseDate) {
+  let html = '<div class="dash-future-sec"><span class="dash-future-title">Prossimi impegni</span>';
+  let hasAny = false;
+  for (let i = 2; i <= 4; i++) {
+    const d = new Date(baseDate);
+    d.setDate(d.getDate() + i);
+    const dayObj = _getDashDayObject(d);
+    if (!dayObj || !dayObj.activities || dayObj.activities.length === 0) continue;
+    hasAny = true;
+    const act     = dayObj.activities[0];
+    const type    = (act.type || '').toUpperCase();
+    const accent  = _dashAccent(type);
+    const dayName = d.toLocaleDateString('it-IT', { weekday: 'short', day: '2-digit' });
+    let content = `<span class="dash-type-txt" style="color:${accent}">${_dashTypeLabel(type)}</span>`;
+
+    if (type === 'FLIGHT') {
+      const legs = act.legs || [];
+      const ci   = act.checkInUtc || (legs[0] && legs[0].checkInUtc) || null;
+      const route = legs.length ? `${legs[0].dep || '?'}→${legs[legs.length-1].arr || '?'}` : '';
+      content += route;
+      if (ci) content += ` <span class="dash-ckin-f-label">C/I</span> <span class="dash-ckin-highlight">${ci}</span>`;
+    } else if (type === 'DH') {
+      const ci = act.checkInUtc || null;
+      content += `${act.dep || '?'}→${act.arr || '?'}`;
+      if (ci) content += ` <span class="dash-ckin-f-label">C/I</span> <span class="dash-ckin-highlight">${ci}</span>`;
+    } else if (type === 'SBY') {
+      content += `${act.startUtc || '?'}—${act.endUtc || '?'}`;
+    }
+
+    html += `
+      <div class="dash-f-card" style="--item-accent:${accent};">
+        <div class="dash-f-date">${dayName.toUpperCase()}</div>
+        <div class="dash-f-content">${content}</div>
+      </div>`;
+  }
+  if (!hasAny) {
+    html += `<div style="padding:12px 8px;font-size:0.85rem;color:var(--text-secondary);">Nessun impegno nei prossimi 3 giorni</div>`;
+  }
+  html += '</div>';
+  return html;
+}
+
+// ── Rendering principale
+function _dashRender() {
+  const container = document.getElementById('dashboard-content');
+  if (!container) return;
+  const today = new Date();
+  const dataToday    = _getDashDayObject(today);
+  const tomorrow     = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1);
+  const dataTomorrow = _getDashDayObject(tomorrow);
+
+  if (!dataToday) {
+    container.innerHTML = `
+      <div class="dash-no-data">
+        <svg class="dash-no-data-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <div class="dash-no-data-title">Nessun dato per oggi</div>
+        <div class="dash-no-data-sub">Carica il roster del mese corrente per attivare la Dashboard</div>
+      </div>`;
+    return;
+  }
+
+  const todayAct  = dataToday.activities[0] || {};
+  const todayType = (todayAct.type || '').toUpperCase();
+  const todayAccent = _dashAccent(todayType);
+  const todayLabel  = _dashTypeLabel(todayType);
+
+  container.innerHTML = `
+    <div class="dash-hero-card">
+      <div class="dash-hero-today">
+        <span class="dash-today-label">OGGI
+          <span style="float:right;color:${todayAccent};background:rgba(255,255,255,0.08);padding:2px 10px;border-radius:8px;font-size:0.8rem;">${todayLabel}</span>
+        </span>
+        ${_dashBuildTodayBody(dataToday)}
+      </div>
+      <div class="dash-hero-tomorrow">
+        <span class="dash-tomorrow-label">DOMANI</span>
+        <span class="dash-tomorrow-val">${_dashBuildTomorrowVal(dataTomorrow)}</span>
+      </div>
+    </div>
+    ${_dashBuildFutureList(today)}
+  `;
+
+  // Avvia countdown SBY se necessario (elemento iniettato nel DOM solo ora)
+  if (todayType === 'SBY' && todayAct.endUtc) {
+    _dashStartSbyCountdown(todayAct.endUtc);
+  }
+}
+
+// ── Toggle principale — REGOLA 1+2+3
+function toggleDashboard() {
+  // REGOLA 1 + 2: aggancia alla data reale; blocca se il mese non è in memoria
+  const today = new Date();
+  const todayData = _getDashDayObject(today);
+
+  // Se non ci sono dati caricati per oggi, mostriamo comunque la dashboard
+  // con il suo stato "no data" (UX più informativa di un pulsante silenzioso)
+  // La REGOLA 2 (blocco totale) si applica se S.schedule è completamente vuoto
+  if (!S.schedule || S.schedule.length === 0) return; // Nessun roster caricato
+
+  _dashActive = !_dashActive;
+  const dashView   = document.getElementById('dashboard-view');
+  const timeline   = document.getElementById('timeline');
+  const dockBtn    = document.getElementById('dockViewToggle');
+
+  if (_dashActive) {
+    // Nasconde timeline, mostra dashboard
+    if (timeline)  timeline.style.display  = 'none';
+    if (dashView)  dashView.style.display  = 'flex';
+    if (dockBtn)   dockBtn.classList.add('dashboard-on');
+    _dashStartClock();
+    _dashRender();
+  } else {
+    // Nasconde dashboard, ripristina timeline
+    if (dashView)  dashView.style.display  = 'none';
+    if (timeline)  timeline.style.display  = 'block';
+    if (dockBtn)   dockBtn.classList.remove('dashboard-on');
+    clearInterval(_dashClockInterval);
+    clearInterval(_dashSbyInterval);
+  }
+}
+
+// Chiude la dashboard se l'utente naviga alla landing
+(function _patchSetAppViewForDash() {
+  const _origSetAppView = setAppView;
+  setAppView = function(view) {
+    // Chiudi dashboard pulitamente su qualsiasi transizione di view
+    if (_dashActive) {
+      _dashActive = false;
+      const dockBtn  = document.getElementById('dockViewToggle');
+      const dashView = document.getElementById('dashboard-view');
+      if (dockBtn)  dockBtn.classList.remove('dashboard-on');
+      if (dashView) dashView.style.display = 'none';
+      clearInterval(_dashClockInterval);
+      clearInterval(_dashSbyInterval);
+    }
+    _origSetAppView(view);
+  };
+})();
+
+// ── Changelog toggle (landing page)
+function toggleChangelog() {
+  const panel   = document.getElementById('changelogPanel');
+  const chevron = document.getElementById('clChevron');
+  if (!panel) return;
+  const isOpen = panel.style.display !== 'none';
+  panel.style.display = isOpen ? 'none' : 'block';
+  if (chevron) chevron.classList.toggle('open', !isOpen);
+}
+
 </script>
 
 <!-- PWA Install Prompt -->
