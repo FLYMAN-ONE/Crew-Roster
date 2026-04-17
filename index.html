@@ -3,6 +3,41 @@
 ╔══════════════════════════════════════════════════════════════╗
 ║  CrewRoster — CHANGELOG                                      ║
 ╠══════════════════════════════════════════════════════════════╣
+║  v4.9.3  (2026-04-14)                                       ║
+║  ─────────────────────────────────────────────────────────   ║
+║  FIX  Pill CI: altezza sempre compatta — .duty-ci-vsep       ║
+║       usa align-self:stretch invece di height fissa.         ║
+║  FIX  Voli overnight: BLK propagato al leg di partenza       ║
+║       nei due punti di chiusura del leg (oaM, oaInDot).      ║
+║                                                              ║
+║  v4.9.2  (2026-04-14)                                       ║
+║  ─────────────────────────────────────────────────────────   ║
+║  FIX  Card DH: pannello sx ora contiene solo label "DH"     ║
+║       grande e centrato — colorazione uniforme ripristinata. ║
+║  FIX  Pill CI/DH: se CI presente mostra "C/I HH:MM | DH    ║
+║       POSITIONING"; se assente mostra solo "DH POSITIONING". ║
+║                                                              ║
+║  v4.9.1  (2026-04-14)                                       ║
+║  ─────────────────────────────────────────────────────────   ║
+║  FIX  Schede volo overnight: rimosso label → +1, BLK        ║
+║       ora sempre visibile.                                   ║
+║  FIX  Arrow zone centrata e simmetrica: .cfd-airport a       ║
+║       larghezza fissa 54px, gap rimosso da .cfd-right.       ║
+║  FIX  DH card: badge DH POSITIONING spostato sotto rotta,   ║
+║       pannello sx allineato alle card volo.                  ║
+║                                                              ║
+║  v4.9.0  (2026-04-13)                                       ║
+║  ─────────────────────────────────────────────────────────   ║
+║  REDESIGN  Schede volo e DH: nuovo layout card.             ║
+║       CI spostato in pill autonomo sopra il duty period,    ║
+║       con note FAM FLT / LC inline nel pill.                ║
+║       Rimossi badge HTL, OVERNIGHT, emoji aereo e remarks   ║
+║       dalla card. DEP bianco / ARR azzurro per leggibilità  ║
+║       immediata della direzione. BLK prominente (700w).     ║
+║       Linea freccia CSS pura senza background hack.         ║
+║       Pannello sx fluid (min-width, no larghezza fissa).    ║
+║       Zero hex hardcoded: tutti i valori su token CSS.      ║
+║                                                              ║
 ║  v4.8.9  (2026-04-04)                                       ║
 ║  ─────────────────────────────────────────────────────────   ║
 ║  FIX  Header: height ora auto — icona home e countdown       ║
@@ -34,7 +69,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>CrewRoster v4.8.9</title>
+<title>CrewRoster v4.9.3</title>
 
 <!-- PWA: complete meta set -->
 <!-- iOS Safari -->
@@ -1101,6 +1136,101 @@
     font-size: 12px; color: var(--text-muted); opacity: 0.7;
   }
 
+  /* ── DUTY CI PILL (v4.9) ── */
+  .duty-ci-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 6px;
+    padding: 0 2px;
+  }
+  .duty-ci-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0;
+    padding: 4px 11px;
+    border-radius: 20px;
+    background: rgba(252,211,77,0.07);
+    border: 1px solid rgba(252,211,77,0.18);
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+  .duty-ci-left {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding-right: 10px;
+  }
+  .duty-ci-lbl {
+    font-size: 8.5px;
+    font-weight: 800;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: #FCD34D;
+    opacity: 0.55;
+  }
+  .duty-ci-time {
+    font-size: 13px;
+    font-weight: 800;
+    color: #FCD34D;
+    letter-spacing: 0.2px;
+    line-height: 1;
+  }
+  .duty-ci-utc {
+    font-size: 7.5px;
+    font-weight: 700;
+    color: #FCD34D;
+    opacity: 0.35;
+    letter-spacing: 0.8px;
+  }
+  .duty-ci-vsep {
+    width: 1px;
+    align-self: stretch;
+    background: rgba(252,211,77,0.20);
+    flex-shrink: 0;
+    margin: 2px 0;
+  }
+  .duty-ci-right {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding-left: 10px;
+  }
+  .duty-ci-note-code {
+    font-size: 10px;
+    font-weight: 700;
+    color: #FCD34D;
+    opacity: 0.75;
+    letter-spacing: 0.3px;
+    line-height: 1;
+  }
+  .duty-ci-note-detail {
+    font-size: 9.5px;
+    font-weight: 500;
+    color: #FCD34D;
+    opacity: 0.48;
+    letter-spacing: 0.2px;
+    line-height: 1;
+  }
+  .duty-ci-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(252,211,77,0.18) 0%, transparent 100%);
+  }
+
+  /* light mode overrides for duty-ci-pill */
+  body.light-mode .duty-ci-pill {
+    background: rgba(180,83,9,0.06) !important;
+    border-color: rgba(180,83,9,0.18) !important;
+  }
+  body.light-mode .duty-ci-lbl        { color: #92400E !important; }
+  body.light-mode .duty-ci-time       { color: #92400E !important; }
+  body.light-mode .duty-ci-utc        { color: #92400E !important; }
+  body.light-mode .duty-ci-vsep       { background: rgba(180,83,9,0.20) !important; }
+  body.light-mode .duty-ci-note-code  { color: #92400E !important; }
+  body.light-mode .duty-ci-note-detail{ color: #92400E !important; }
+  body.light-mode .duty-ci-line       { background: linear-gradient(90deg, rgba(180,83,9,0.18) 0%, transparent 100%) !important; }
+
   /* DARK FLIGHT CARD */
   .card-flight-dark {
     background: linear-gradient(145deg, #1e293b 0%, #020617 100%);
@@ -1126,7 +1256,8 @@
     flex-direction: column;
     justify-content: center;
     gap: 3px;
-    width: 120px;
+    min-width: 96px;
+    max-width: 28%;
     flex-shrink: 0;
     flex-grow: 0;
     background: rgba(0,0,0,0.15);
@@ -1142,21 +1273,16 @@
     text-overflow: ellipsis;
   }
   .cfd-meta {
-    display: flex;
-    align-items: center;
-    gap: 6px;
+    display: none;
   }
   .cfd-ac {
     display: inline-block;
     align-self: flex-start;
-    font-size: 9px;
-    font-weight: 700;
+    font-size: 10px;
+    font-weight: 600;
     color: #7DD3FC;
-    letter-spacing: 0.6px; background: rgba(125,211,252,0.10);
-    padding: 1px 5px;
-    border-radius: 4px;
-    margin-bottom: 1px;
-    opacity: 0.85;
+    letter-spacing: 0.4px;
+    line-height: 1;
   }
   .cfd-ci {
     font-size: 12px;
@@ -1178,7 +1304,7 @@
     padding: 11px 14px;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 0;
     flex: 1;
     min-width: 0;
     position: relative;
@@ -1188,6 +1314,8 @@
     flex-direction: column;
     align-items: center;
     gap: 1px;
+    flex: 0 0 54px;
+    width: 54px;
   }
   .cfd-iata {
     cursor: pointer;
@@ -1200,6 +1328,9 @@
     transition: color 0.12s;
   }
   .cfd-iata:hover { color: #93C5FD; }
+  /* ARR airport gets accent color to distinguish from DEP */
+  .cfd-airport.arr .cfd-iata { color: #7DD3FC; }
+  .cfd-airport.arr .cfd-iata:hover { color: #BAE6FD; }
   .cfd-time {
     font-size: 12px;
     font-weight: 600;
@@ -1215,34 +1346,38 @@
     padding: 0 6px;
     gap: 3px;
   }
+  /* BLK prominente (fix D) */
   .cfd-fh {
     font-size: 10px;
-    font-weight: 600;
+    font-weight: 700;
     color: #BFDBFE; letter-spacing: 0.5px;
     white-space: nowrap;
-    opacity: 0.55;
   }
   .card-dh-dark .cfd-fh { color: rgba(255,255,255,0.6); }
+  /* Arrow line split CSS-only, no background hack (fix J) */
   .cfd-arrow-row {
     width: 100%;
     display: flex;
     align-items: center;
-    position: relative;
   }
-  .cfd-arrow-line {
-    width: 100%;
+  .cfd-arrow-line-l {
+    flex: 1;
     height: 0.5px;
-    background: linear-gradient(90deg, transparent 0%, rgba(96,165,250,0.35) 30%, rgba(96,165,250,0.35) 70%, transparent 100%);
+    background: linear-gradient(90deg, transparent 0%, rgba(96,165,250,0.35) 100%);
   }
-  .cfd-arrow-plane {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 11px;
-    color: rgba(96,165,250,0.7);
-    line-height: 1;
-    background: #0d1623;
+  .cfd-arrow-line-r {
+    flex: 1;
+    height: 0.5px;
+    background: linear-gradient(90deg, rgba(96,165,250,0.35) 0%, transparent 100%);
+  }
+  .cfd-arrow-dash {
+    font-size: 7px;
+    font-weight: 800;
+    color: rgba(96,165,250,0.35);
     padding: 0 3px;
+    flex-shrink: 0;
+    line-height: 1;
+    letter-spacing: 1px;
   }
   .cfd-nextday {
     font-size: 9px;
@@ -1257,29 +1392,19 @@
 
   .cfd-lbl {
     font-size: 8px;
-    font-weight: 600;
-    color: rgba(148,163,184,0.45);
+    font-weight: 700;
+    color: rgba(148,163,184,0.55);
     letter-spacing: 0.8px;
     text-transform: uppercase;
     font-family: 'Inter', sans-serif;
   }
+  /* STA label gets arr accent color */
+  .cfd-airport.arr .cfd-lbl { color: rgba(125,211,252,0.55); }
   .cfd-badges {
     display: flex;
     gap: 5px;
     flex-wrap: wrap;
     margin-top: 4px;
-  }
-  .cfd-badge-overnight {
-    font-size: 9px; font-weight: 700; letter-spacing: 0.6px;
-    color: #A78BFA; background: rgba(167,139,250,0.12);
-    border-radius: 4px; padding: 2px 6px;
-  }
-  .cfd-badge-htl {
-    font-family: 'Inter', sans-serif;
-    font-size: 8px; font-weight: 700;
-    color: #A5F3FC; background: rgba(165,243,252,0.10);
-    border: 0.5px solid rgba(165,243,252,0.25);
-    border-radius: 4px; padding: 1px 5px;
   }
   .cfd-badge-ext {
     font-family: 'Inter', sans-serif;
@@ -1504,11 +1629,14 @@
   .card-dh-dark .cfd-ci          { color: #FCD34D; font-weight: 800; }
   .card-dh-dark .cfd-ci-label    { color: rgba(255,255,255,0.65); }
   .card-dh-dark .cfd-iata        { color: #FFFFFF; }
+  .card-dh-dark .cfd-airport.arr .cfd-iata { color: #CBD5E1; }
   .card-dh-dark .cfd-time        { color: #FFFFFF; font-size: 14px; font-weight: 700; }
   .card-dh-dark .cfd-lbl         { color: rgba(255,255,255,0.6); }
+  .card-dh-dark .cfd-airport.arr .cfd-lbl  { color: rgba(203,213,225,0.55); }
   .card-dh-dark .cfd-divider     { background: rgba(255,255,255,0.2); }
-  .card-dh-dark .cfd-arrow-line  { background: rgba(255,255,255,0.35); }
-  .card-dh-dark .cfd-arrow-plane { color: rgba(255,255,255,0.4); background: #0a0f1a; }
+  .card-dh-dark .cfd-arrow-line-l { background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.25) 100%); }
+  .card-dh-dark .cfd-arrow-line-r { background: linear-gradient(90deg, rgba(255,255,255,0.25) 0%, transparent 100%); }
+  .card-dh-dark .cfd-arrow-dash  { color: rgba(255,255,255,0.25); }
   .card-dh-dark .cfd-dh-badge    { color: #FFFFFF; background: rgba(255,255,255,0.18); }
   .card-dh-dark .cfd-service-badge { color: #FFFFFF; background: rgba(255,255,255,0.18); }
   .cfd-dh-badge {
@@ -1517,6 +1645,19 @@
     border-radius: 4px; padding: 2px 6px;
     text-transform: uppercase;
   }
+  /* DH left panel: "DH" label large and centered */
+  .cfd-left-dh {
+    justify-content: center;
+    align-items: center;
+  }
+  .cfd-dh-label {
+    font-size: 17px;
+    font-weight: 800;
+    color: #94A3B8;
+    letter-spacing: 0.5px;
+    line-height: 1;
+  }
+  .card-dh-dark .cfd-dh-label { color: #94A3B8; }
   .cfd-train-label {
     position: absolute;
     left: 50%;
@@ -1711,26 +1852,25 @@
     .day-label-wd  { font-size: 8px; letter-spacing: 0.5px; }
 
     /* ── FLIGHT / DH — left panel ─────────────────────────── */
-    .cfd-left           { width: 86px; padding: 10px 9px; gap: 3px; }
+    .cfd-left           { min-width: 80px; padding: 10px 9px; gap: 3px; }
     .cfd-fltn           { font-size: 13px; }
-    .cfd-meta           { gap: 4px; }
-    .cfd-ci             { font-size: 11px; }
-    .cfd-ci-label       { font-size: 8px; }
-    .cfd-ac             { font-size: 9px; padding: 1px 5px; margin-bottom: 1px; }
+    .cfd-ac             { font-size: 9px; }
     .cfd-badges         { gap: 2px; margin-top: 2px; }
     .cfd-dh-badge       { font-size: 7px !important; padding: 2px 4px !important; letter-spacing: 0.2px; }
     .cfd-service-badge  { font-size: 7px !important; padding: 2px 4px !important; }
     .cfd-badge-ext      { font-size: 7px !important; padding: 1px 4px !important; }
+    /* duty CI pill on mobile */
+    .duty-ci-time       { font-size: 12px; }
+    .duty-ci-note-code  { font-size: 9px; }
+    .duty-ci-note-detail{ font-size: 8.5px; }
+    .duty-ci-vsep       { height: 22px; }
 
     /* ── FLIGHT / DH — right panel ───────────────────────── */
-    /* netto: 323 - 90 - 1(divider) - 16(pad) = 216px          */
-    /* 2 airport + arrow: (216-28)÷2 = 94px each → IATA@15px ✓ */
-    .cfd-right          { padding: 10px 8px; gap: 6px; }
+    .cfd-right          { padding: 10px 8px; }
     .cfd-iata           { font-size: 15px; letter-spacing: -0.2px; }
     .cfd-time           { font-size: 11px; }
     .cfd-lbl            { font-size: 7px; letter-spacing: 0.4px; }
     .cfd-fh             { font-size: 9px; letter-spacing: 0.4px; }
-    .cfd-arrow-plane    { font-size: 11px; }
     .cfd-train-label    { font-size: 8px !important; letter-spacing: 0.3px; }
     .cfd-nextday        { font-size: 8px; }
 
@@ -1811,7 +1951,7 @@
     .cfd-fltn       { font-size: 12px; }
     .cfd-iata       { font-size: 14px; }
     .cfd-time       { font-size: 11px; }
-    .cfd-right      { padding: 9px 6px; gap: 3px; }
+    .cfd-right      { padding: 9px 6px; }
     .sby-left       { width: 62px; }
     .sby-time       { font-size: 15px; }
     .stat-pill      { padding: 3px 7px; }
@@ -3595,14 +3735,15 @@
     min-height: 72px;
   }
 
-  /* LEFT panel — CI primary */
+  /* LEFT panel — fluid width (fix A) */
   .cfd-left {
     padding: 10px 12px;
     display: flex;
     flex-direction: column;
     justify-content: center;
     gap: 4px;
-    width: 112px;
+    min-width: 96px;
+    max-width: 28%;
     flex-shrink: 0;
     flex-grow: 0;
     background: rgba(0,0,0,0.18);
@@ -3621,21 +3762,16 @@
 
   .cfd-ac {
     display: inline-block;
-    align-self: flex-start; font-size: 9px;
-    font-weight: 700;
+    align-self: flex-start; font-size: 10px;
+    font-weight: 600;
     color: #7DD3FC;
-    letter-spacing: 0.5px;
-    background: rgba(125,211,252,0.10);
-    padding: 1px 5px;
-    border-radius: 4px;
-    opacity: 0.85;
+    letter-spacing: 0.4px;
+    line-height: 1;
   }
 
+  /* CI meta hidden — moved to duty-ci-pill (fix B) */
   .cfd-meta {
-    display: flex;
-    align-items: baseline;
-    gap: 4px;
-    margin-top: 1px;
+    display: none;
   }
 
   .cfd-ci-label {
@@ -3659,7 +3795,7 @@
     padding: 10px 12px;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 0;
     flex: 1;
     min-width: 0;
     position: relative;
@@ -3671,6 +3807,8 @@
     align-items: center;
     gap: 1px;
     flex-shrink: 0;
+    flex: 0 0 54px;
+    width: 54px;
   }
 
   .cfd-iata {
@@ -3686,6 +3824,10 @@
 
   .cfd-iata:hover { color: #93C5FD; }
 
+  /* ARR airport color (fix E) */
+  .cfd-airport.arr .cfd-iata { color: #7DD3FC; }
+  .cfd-airport.arr .cfd-iata:hover { color: #BAE6FD; }
+
   .cfd-iata.dh-ghost { opacity: 0.35; }
 
   .cfd-time { font-size: 11px;
@@ -3697,11 +3839,14 @@
   .cfd-lbl {
     font-family: 'Inter', sans-serif;
     font-size: 8px;
-    font-weight: 600;
-    color: rgba(148,163,184,0.42);
+    font-weight: 700;
+    color: rgba(148,163,184,0.55);
     letter-spacing: 0.7px;
     text-transform: uppercase;
   }
+
+  /* STA label inherits arr accent */
+  .cfd-airport.arr .cfd-lbl { color: rgba(125,211,252,0.55); }
 
   /* Arrow between airports */
   .cfd-arrow {
@@ -3715,38 +3860,41 @@
     gap: 3px;
   }
 
+  /* BLK prominente (fix D) */
   .cfd-fh { font-size: 10px;
-    font-weight: 600;
+    font-weight: 700;
     color: #BFDBFE;
     letter-spacing: 0.4px;
     white-space: nowrap;
-    opacity: 0.55;
   }
 
   .cfd-arrow-row {
     width: 100%;
     display: flex;
     align-items: center;
-    position: relative;
   }
 
-  .cfd-arrow-line {
-    width: 100%;
+  /* Arrow line split CSS-only, no background hack (fix J) */
+  .cfd-arrow-line-l {
+    flex: 1;
     height: 0.5px;
-    background: linear-gradient(90deg,
-      transparent 0%, rgba(96,165,250,0.35) 30%,
-      rgba(96,165,250,0.35) 70%, transparent 100%);
+    background: linear-gradient(90deg, transparent 0%, rgba(96,165,250,0.35) 100%);
   }
 
-  .cfd-arrow-plane {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 11px;
-    color: rgba(96,165,250,0.72);
-    line-height: 1;
-    background: #0D1726;
+  .cfd-arrow-line-r {
+    flex: 1;
+    height: 0.5px;
+    background: linear-gradient(90deg, rgba(96,165,250,0.35) 0%, transparent 100%);
+  }
+
+  .cfd-arrow-dash {
+    font-size: 7px;
+    font-weight: 800;
+    color: rgba(96,165,250,0.35);
     padding: 0 3px;
+    flex-shrink: 0;
+    line-height: 1;
+    letter-spacing: 1px;
   }
 
   .cfd-nextday {
@@ -3758,34 +3906,12 @@
     white-space: nowrap;
   }
 
-  /* Badges area */
+  /* Badges area — only EXT remains in card */
   .cfd-badges {
     display: flex;
     gap: 4px;
     flex-wrap: wrap;
     margin-top: 3px;
-  }
-
-  .cfd-badge-overnight {
-    font-family: 'Inter', sans-serif;
-    font-size: 9px;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-    color: #A78BFA;
-    background: rgba(167,139,250,0.12);
-    border-radius: 5px;
-    padding: 2px 6px;
-  }
-
-  .cfd-badge-htl {
-    font-family: 'Inter', sans-serif;
-    font-size: 8px;
-    font-weight: 700;
-    color: #A5F3FC;
-    background: rgba(165,243,252,0.10);
-    border: 0.5px solid rgba(165,243,252,0.24);
-    border-radius: 5px;
-    padding: 2px 6px;
   }
 
   .cfd-badge-ext {
@@ -3819,8 +3945,12 @@
   .card-dh-dark .cfd-fltn { color: #9CA3AF; }
   .card-dh-dark .cfd-ci   { color: #E5E7EB; }
   .card-dh-dark .cfd-iata { color: rgba(255,255,255,0.72); }
+  .card-dh-dark .cfd-airport.arr .cfd-iata { color: #CBD5E1; }
   .card-dh-dark .cfd-fh   { color: rgba(255,255,255,0.55); }
   .card-dh-dark .cfd-nextday { color: #FDE68A; }
+  .card-dh-dark .cfd-arrow-line-l { background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.25) 100%); }
+  .card-dh-dark .cfd-arrow-line-r { background: linear-gradient(90deg, rgba(255,255,255,0.25) 0%, transparent 100%); }
+  .card-dh-dark .cfd-arrow-dash   { color: rgba(255,255,255,0.25); }
 
   .cfd-dh-badge {
     font-family: 'Inter', sans-serif;
@@ -3833,6 +3963,19 @@
     border: 0.5px solid rgba(255,255,255,0.14);
     border-radius: 5px;
     padding: 2px 7px;
+  }
+
+  /* DH left panel: "DH" label large and centered */
+  .cfd-left-dh {
+    justify-content: center;
+    align-items: center;
+  }
+  .cfd-dh-label {
+    font-size: 17px;
+    font-weight: 800;
+    color: #94A3B8;
+    letter-spacing: 0.5px;
+    line-height: 1;
   }
 
   .cfd-service-badge {
@@ -4245,9 +4388,8 @@
 
   @media (max-width: 430px) {
     .cfd-iata  { font-size: 16px; }
-    .cfd-left  { width: 100px; padding: 9px 10px; }
-    .cfd-right { padding: 9px 10px; gap: 4px; }
-    .cfd-ci    { font-size: 12px; }
+    .cfd-left  { min-width: 80px; max-width: 28%; padding: 9px 10px; }
+    .cfd-right { padding: 9px 10px; }
 
     .sby-time  { font-size: 18px; }
     .sby-left  { width: 72px; padding: 0 11px; }
@@ -6378,22 +6520,18 @@ body.light-mode .card-flight-dark {
 }
 body.light-mode .card-flight-dark .cfd-left      { background: rgba(37,99,235,0.08) !important; border-right-color: rgba(37,99,235,0.14) !important; }
 body.light-mode .card-flight-dark .cfd-fltn      { color: #1D4ED8 !important; }
-body.light-mode .card-flight-dark .cfd-ac        { color: #1D4ED8 !important; background: rgba(37,99,235,0.08) !important; }
-body.light-mode .card-flight-dark .cfd-ci-label  { color: rgba(30,58,138,0.55) !important; }
-body.light-mode .card-flight-dark .cfd-ci        { color: #92400E !important; }
+body.light-mode .card-flight-dark .cfd-ac        { color: #1D4ED8 !important; }
 body.light-mode .card-flight-dark .cfd-iata      { color: #1E3A5F !important; }
+body.light-mode .card-flight-dark .cfd-airport.arr .cfd-iata { color: #1D4ED8 !important; }
 body.light-mode .card-flight-dark .cfd-time      { color: #334155 !important; }
-body.light-mode .card-flight-dark .cfd-lbl       { color: rgba(15,23,42,0.40) !important; }
-body.light-mode .card-flight-dark .cfd-fh        { color: #475569 !important; opacity: 1; }
+body.light-mode .card-flight-dark .cfd-lbl       { color: rgba(15,23,42,0.45) !important; }
+body.light-mode .card-flight-dark .cfd-airport.arr .cfd-lbl { color: rgba(29,78,216,0.55) !important; }
+body.light-mode .card-flight-dark .cfd-fh        { color: #475569 !important; }
 body.light-mode .card-flight-dark .cfd-nextday   { color: #B45309 !important; }
-body.light-mode .card-flight-dark .cfd-arrow-line { background: linear-gradient(90deg, transparent 0%, rgba(37,99,235,0.22) 30%, rgba(37,99,235,0.22) 70%, transparent 100%) !important; }
-body.light-mode .card-flight-dark .cfd-badge-overnight { color: #6D28D9 !important; background: rgba(109,40,217,0.09) !important; }
-body.light-mode .card-flight-dark .cfd-badge-htl       { color: #0E7490 !important; background: rgba(14,116,144,0.09) !important; border-color: rgba(14,116,144,0.22) !important; }
-body.light-mode .card-flight-dark .cfd-badge-ext       { color: #92400E !important; background: rgba(146,64,14,0.09) !important; border-color: rgba(146,64,14,0.22) !important; }
-/* Remarks on flight card */
-body.light-mode .card-flight-dark .card-remarks         { border-top-color: rgba(37,99,235,0.14) !important; }
-body.light-mode .card-flight-dark .card-remarks-label   { color: #475569 !important; }
-body.light-mode .card-flight-dark .card-remarks-tag     { color: #334155 !important; background: rgba(37,99,235,0.07) !important; border-color: rgba(37,99,235,0.16) !important; }
+body.light-mode .card-flight-dark .cfd-arrow-line-l { background: linear-gradient(90deg, transparent 0%, rgba(37,99,235,0.22) 100%) !important; }
+body.light-mode .card-flight-dark .cfd-arrow-line-r { background: linear-gradient(90deg, rgba(37,99,235,0.22) 0%, transparent 100%) !important; }
+body.light-mode .card-flight-dark .cfd-arrow-dash   { color: rgba(37,99,235,0.22) !important; }
+body.light-mode .card-flight-dark .cfd-badge-ext    { color: #92400E !important; background: rgba(146,64,14,0.09) !important; border-color: rgba(146,64,14,0.22) !important; }
 
 /* ── DH CARD ─────────────────────────────────────────────── */
 body.light-mode .card-dh-dark {
@@ -6403,10 +6541,14 @@ body.light-mode .card-dh-dark {
 }
 body.light-mode .card-dh-dark .cfd-left    { background: rgba(100,116,139,0.08) !important; }
 body.light-mode .card-dh-dark .cfd-fltn    { color: #475569 !important; }
-body.light-mode .card-dh-dark .cfd-ci      { color: #374151 !important; }
+body.light-mode .card-dh-dark .cfd-dh-label { color: #64748B !important; }
 body.light-mode .card-dh-dark .cfd-iata    { color: #1E293B !important; }
+body.light-mode .card-dh-dark .cfd-airport.arr .cfd-iata { color: #334155 !important; }
 body.light-mode .card-dh-dark .cfd-time    { color: #475569 !important; }
-body.light-mode .card-dh-dark .cfd-fh      { color: #94A3B8 !important; opacity: 1; }
+body.light-mode .card-dh-dark .cfd-fh      { color: #94A3B8 !important; }
+body.light-mode .card-dh-dark .cfd-arrow-line-l { background: linear-gradient(90deg, transparent 0%, rgba(100,116,139,0.28) 100%) !important; }
+body.light-mode .card-dh-dark .cfd-arrow-line-r { background: linear-gradient(90deg, rgba(100,116,139,0.28) 0%, transparent 100%) !important; }
+body.light-mode .card-dh-dark .cfd-arrow-dash   { color: rgba(100,116,139,0.28) !important; }
 body.light-mode .card-dh-dark .cfd-dh-badge    { color: #334155 !important; background: rgba(100,116,139,0.10) !important; border-color: rgba(100,116,139,0.25) !important; }
 body.light-mode .card-dh-dark .cfd-service-badge { color: #92400E !important; background: rgba(146,64,14,0.08) !important; border-color: rgba(146,64,14,0.22) !important; }
 body.light-mode .card-dh-dark .cfd-train-label { color: #1D4ED8 !important; }
@@ -6724,13 +6866,6 @@ body.light-mode .card-flight-dark .cfd-left {
   background: rgba(37,99,235,0.08) !important;
   border-right-color: rgba(37,99,235,0.14) !important;
 }
-body.light-mode .card-flight-dark .cfd-arrow-plane {
-  background: rgba(37,99,235,0.05) !important;
-  color: rgba(37,99,235,0.50) !important;
-}
-body.light-mode .card-flight-dark .cfd-arrow-line {
-  background: linear-gradient(90deg, transparent 0%, rgba(37,99,235,0.22) 30%, rgba(37,99,235,0.22) 70%, transparent 100%) !important;
-}
 
 /* ── DH card ── */
 body.light-mode .card-dh-dark          {
@@ -6741,10 +6876,6 @@ body.light-mode .card-dh-dark          {
 body.light-mode .card-dh-dark .cfd-left {
   background: rgba(100,116,139,0.09) !important;
   border-right-color: rgba(100,116,139,0.14) !important;
-}
-body.light-mode .card-dh-dark .cfd-arrow-plane {
-  background: rgba(100,116,139,0.06) !important;
-  color: rgba(100,116,139,0.55) !important;
 }
 
 /* ── TRAINING card ── */
@@ -8525,7 +8656,7 @@ header       { display: none; }
         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/></svg>
       </div>
       <h1 class="lp-heading">Crew<span>Roster</span></h1>
-      <span class="app-version" style="color: var(--text-dimmed, #94a3b8); font-size: 12px; font-weight: 600; letter-spacing: 1px;">v4.8.9</span>
+      <span class="app-version" style="color: var(--text-dimmed, #94a3b8); font-size: 12px; font-weight: 600; letter-spacing: 1px;">v4.9.3</span>
     </div>
 
     <div class="lp-center">
@@ -8545,7 +8676,7 @@ header       { display: none; }
         </button>
         <div class="lp-changelog-panel" id="changelogPanel" style="display:none">
           <div class="cl-version">
-            <span class="cl-ver-tag">v4.8.9</span>
+            <span class="cl-ver-tag">v4.9.3</span>
             <span class="cl-ver-date">04 Apr 2026</span>
           </div>
           <ul class="cl-list">
@@ -9145,10 +9276,12 @@ function parseNeosRoster(text) {
           _depDate.setUTCDate(_depDate.getUTCDate() + 1);
           const _arrIso = _depDate.toISOString().slice(0, 10);
           if (!curDay || curDate !== _arrIso) newDay(_arrIso);
+          const _blkUtc1 = oaM[3] ? parseTime(oaM[3].replace('.',':')) : null;
+          if (_blkUtc1 && !_ol.blockUtc) _ol.blockUtc = _blkUtc1; // propagate BLK to departure leg
           const _arrLeg = {
             fltn: _ol.fltn, dep: null, arr: oaM[1],
             toUtc: null, ldgUtc: parseTime(oaM[2]),
-            blockUtc: oaM[3] ? parseTime(oaM[3].replace('.',':')) : null,
+            blockUtc: _blkUtc1,
             checkInUtc: null, hotel: _ol.hotel,
             acType: _ol.acType, multiDay: false,
           };
@@ -9281,13 +9414,15 @@ function parseNeosRoster(text) {
 
         if (!curDay || curDate !== _arrIso) newDay(_arrIso);
 
+        const _blkUtc2 = oaInDot[3] ? parseTime(oaInDot[3].replace('.',':')) : null;
+        if (_blkUtc2 && !_ol.blockUtc) _ol.blockUtc = _blkUtc2; // propagate BLK to departure leg
         const _arrLeg = {
           fltn: _ol.fltn || '—',
           dep: null,
           arr: oaInDot[1],
           toUtc: null,
           ldgUtc: parseTime(oaInDot[2]),
-          blockUtc: oaInDot[3] ? parseTime(oaInDot[3].replace('.',':')) : null,
+          blockUtc: _blkUtc2,
           checkInUtc: null,
           hotel: _ol.hotel || false,
           acType: _ol.acType || null,
@@ -11020,51 +11155,122 @@ function renderAct(act) {
 // ── FLIGHT
 function renderFlight(act) {
   const frag = document.createDocumentFragment();
-  for (let i=0; i<act.legs.length; i++) {
+
+  // ── Duty CI pill: rendered once above the first leg ──────────
+  const _ciTime = (act.legs || []).reduce((t, l) => t || l.checkInUtc, null);
+
+  // FAM FLT: aggregate from act + all legs
+  const _famLegs  = (act.legs || []).filter(l => l.famFlt);
+  const _hasFam   = act.famFlt || _famLegs.length > 0;
+  const _famCodes = [...new Set([
+    ...(act.famFltCodes || []),
+    ..._famLegs.flatMap(l => l.famFltCodes || [])
+  ])];
+  const _famLabel = _hasFam
+    ? ('FAM FLT' + (_famCodes.length ? ' ' + _famCodes.join(' ') : ''))
+    : null;
+
+  // LC: aggregate from act + all legs
+  const _lcLegs  = (act.legs || []).filter(l => l.lineCheck);
+  const _hasLC   = act.lineCheck || _lcLegs.length > 0;
+  const _lcCodes = [...new Set([
+    ...(act.lineCheckCodes || []),
+    ..._lcLegs.flatMap(l => l.lineCheckCodes || [])
+  ])];
+  const _lcLabel = _hasLC
+    ? ('LC' + (_lcCodes.length ? ' ' + _lcCodes.join(' ') : ''))
+    : null;
+
+  // Inspector detail from remarks (Fam.Flt. / LC inspector codes)
+  const _allRemarks = [...new Set(
+    (act.legs || []).flatMap(l => l.remarks || [])
+      .concat(act.remarks || [])
+      .map(r => r.trim()).filter(Boolean)
+  )];
+  const _inspDetail = _allRemarks
+    .filter(r => /fam\.?\s*flt|fam\s*flight/i.test(r) || /^LC\s+[A-Z0-9]/.test(r))
+    .join(' \u00b7 ');
+
+  if (_ciTime) {
+    const pillEl = document.createElement('div');
+    pillEl.className = 'duty-ci-header';
+    const _noteLabel = _lcLabel || _famLabel;
+    let _rightSec = '';
+    if (_noteLabel) {
+      _rightSec =
+        '<div class="duty-ci-vsep"></div>' +
+        '<div class="duty-ci-right">' +
+          '<span class="duty-ci-note-code">' + esc(_noteLabel) + '</span>' +
+          (_inspDetail ? '<span class="duty-ci-note-detail">' + esc(_inspDetail) + '</span>' : '') +
+        '</div>';
+    }
+    pillEl.innerHTML =
+      '<div class="duty-ci-pill">' +
+        '<div class="duty-ci-left">' +
+          '<span class="duty-ci-lbl">C/I</span>' +
+          '<span class="duty-ci-time">' + esc(_ciTime) + '</span>' +
+          '<span class="duty-ci-utc">UTC</span>' +
+        '</div>' +
+        _rightSec +
+      '</div>' +
+      '<div class="duty-ci-line"></div>';
+    frag.appendChild(pillEl);
+  }
+
+  // Shared arrow track: split line + dash, no emoji, no bg hack
+  const _arrowTrack =
+    '<div class="cfd-arrow-row">' +
+      '<div class="cfd-arrow-line-l"></div>' +
+      '<span class="cfd-arrow-dash">\u2013\u2013</span>' +
+      '<div class="cfd-arrow-line-r"></div>' +
+    '</div>';
+
+  for (let i = 0; i < act.legs.length; i++) {
     const leg = act.legs[i];
+
     if (i > 0) {
       const prev = act.legs[i-1];
       if (prev.ldgUtc && leg.toUtc) {
         const gt = timeDiff(prev.ldgUtc, leg.toUtc);
         const gtEl = document.createElement('div');
         gtEl.className = 'ground-time';
-        gtEl.textContent = 'TURNAROUND TIME · ' + gt;
+        gtEl.textContent = 'TURNAROUND TIME \u00b7 ' + gt;
         frag.appendChild(gtEl);
       }
     }
-    const fltn = leg.fltn && leg.fltn !== '—' ? 'NO ' + leg.fltn : '—';
-    const badges = [
-      leg.ext   ? '<span class="cfd-badge-ext">EXT</span>' : '',
-      leg.hotel ? '<span class="cfd-badge-htl">HTL</span>' : '',
-    ].filter(Boolean).join('');
+
+    const fltn = leg.fltn && leg.fltn !== '\u2014' ? 'NO\u00a0' + leg.fltn : '\u2014';
+    const badgesHtml = leg.ext
+      ? '<div class="cfd-badges"><span class="cfd-badge-ext">EXT</span></div>'
+      : '';
+
     const card = document.createElement('div');
     card.className = 'card-flight-dark' +
-      (leg.lineCheck ? ' has-lc' : '') +
+      (leg.lineCheck ? ' has-lc'  : '') +
       (leg.famFlt    ? ' has-fam' : '');
-    // Split card rendering based on whether this leg crosses midnight
-    const isCont = !leg.dep && leg.arr;   // continuation (arrival-only) leg
-    const isDepart = leg.multiDay === true; // departure-only leg (open overnight)
+
+    const isCont   = !leg.dep && leg.arr;
+    const isDepart = leg.multiDay === true;
+
     let rightHtml;
     if (isDepart) {
-      // Departure card: DEP STD → arrow → midnight indicator
       rightHtml =
-        '<div class="cfd-airport">' +
+        '<div class="cfd-airport dep">' +
           '<div class="cfd-iata">' + esc(leg.dep) + '</div>' +
-          '<div class="cfd-time">' + (leg.toUtc||'—') + '</div>' +
+          '<div class="cfd-time">' + (leg.toUtc||'\u2014') + '</div>' +
           '<div class="cfd-lbl">STD</div>' +
         '</div>' +
         '<div class="cfd-arrow">' +
           (leg.blockUtc ? '<span class="cfd-fh">' + leg.blockUtc + '</span>' : '') +
-          '<div class="cfd-arrow-row"><div class="cfd-arrow-line"></div><span class="cfd-arrow-plane">✈</span></div>' +
+          _arrowTrack +
         '</div>' +
-        '<div class="cfd-airport">' +
-          '<div class="cfd-iata cfd-iata-cont">···</div>' +
-          '<div class="cfd-time" style="opacity:0.35">—</div>' +
-          '<div class="cfd-lbl">→ +1</div>' +
+        '<div class="cfd-airport arr">' +
+          '<div class="cfd-iata cfd-iata-cont">\u00b7\u00b7\u00b7</div>' +
+          '<div class="cfd-time" style="opacity:0.28">\u2014</div>' +
+          '<div class="cfd-lbl"></div>' +
         '</div>';
     } else if (isCont) {
-      // Arrival card: continuation from previous day
-      // Compute departure date label (arrival dateIso - 1 day)
+      // v4.8.9 fix: compute departure date label (arrival dateIso - 1 day)
       const _arrDate = act.dateIso || '';
       let _depDateLabel = '';
       if (_arrDate) {
@@ -11074,53 +11280,47 @@ function renderFlight(act) {
         _depDateLabel = _d.getUTCDate() + ' ' + _IT_M_S[_d.getUTCMonth()];
       }
       rightHtml =
-        '<div class="cfd-airport">' +
-          '<div class="cfd-iata cfd-iata-cont">···</div>' +
-          '<div class="cfd-time" style="opacity:0.35">—</div>' +
-          '<div class="cfd-lbl">' + (_depDateLabel || '← −1') + '</div>' +
+        '<div class="cfd-airport dep">' +
+          '<div class="cfd-iata cfd-iata-cont">\u00b7\u00b7\u00b7</div>' +
+          '<div class="cfd-time" style="opacity:0.28">\u2014</div>' +
+          '<div class="cfd-lbl">' + esc(_depDateLabel || '\u2190 \u22121') + '</div>' +
         '</div>' +
         '<div class="cfd-arrow">' +
-          '<div class="cfd-arrow-row"><div class="cfd-arrow-line"></div><span class="cfd-arrow-plane">✈</span></div>' +
+          _arrowTrack +
         '</div>' +
-        '<div class="cfd-airport">' +
+        '<div class="cfd-airport arr">' +
           '<div class="cfd-iata">' + esc(leg.arr) + '</div>' +
-          '<div class="cfd-time">' + (leg.ldgUtc||'—') + '</div>' +
+          '<div class="cfd-time">' + (leg.ldgUtc||'\u2014') + '</div>' +
           '<div class="cfd-lbl">STA</div>' +
         '</div>';
     } else {
-      // Normal same-day leg
       rightHtml =
-        '<div class="cfd-airport">' +
+        '<div class="cfd-airport dep">' +
           '<div class="cfd-iata">' + esc(leg.dep) + '</div>' +
-          '<div class="cfd-time">' + (leg.toUtc||'—') + '</div>' +
+          '<div class="cfd-time">' + (leg.toUtc||'\u2014') + '</div>' +
           '<div class="cfd-lbl">STD</div>' +
         '</div>' +
         '<div class="cfd-arrow">' +
           (leg.blockUtc ? '<span class="cfd-fh">' + leg.blockUtc + '</span>' : '') +
-          '<div class="cfd-arrow-row"><div class="cfd-arrow-line"></div><span class="cfd-arrow-plane">✈</span></div>' +
+          _arrowTrack +
         '</div>' +
-        '<div class="cfd-airport">' +
+        '<div class="cfd-airport arr">' +
           '<div class="cfd-iata">' + esc(leg.arr) + '</div>' +
-          '<div class="cfd-time">' + (leg.ldgUtc||'—') + '</div>' +
+          '<div class="cfd-time">' + (leg.ldgUtc||'\u2014') + '</div>' +
           '<div class="cfd-lbl">STA</div>' +
         '</div>';
     }
+
     card.innerHTML =
       '<div style="display:flex">' +
         '<div class="cfd-left">' +
           '<div class="cfd-fltn">' + esc(fltn) + '</div>' +
-          '<div class="cfd-meta">' +
-            '<span class="cfd-ci-label">CI</span>' +
-            '<span class="cfd-ci">' + (leg.checkInUtc || '—') + '</span>' +
-          '</div>' +
-          (leg.acType ? '<span class="cfd-ac">' + esc(leg.acType) + '</span>' : '') +
-          (badges ? '<div class="cfd-badges">' + badges + '</div>' : '') +
+          (leg.acType ? '<div class="cfd-ac">' + esc(leg.acType) + '</div>' : '') +
+          badgesHtml +
         '</div>' +
-        '<div class="cfd-divider"></div>' +
         '<div class="cfd-right">' + rightHtml + '</div>' +
       '</div>';
-    const fr = remarksHtml(leg);
-    if (fr) card.insertAdjacentHTML('beforeend', fr);
+
     frag.appendChild(card);
   }
   return frag;
@@ -11524,64 +11724,102 @@ function renderLayover(act) {
 
 // ── DEADHEAD
 function renderDH(act) {
-  const badges =
-    '<span class="cfd-dh-badge">DH POSITIONING</span>' +
-    (act.service ? ' <span class="cfd-service-badge">' + esc(act.service) + '</span>' : '');
-  const arrowInner =
-    act.trainLabel  ? '<span class="cfd-train-label">' + esc(act.trainLabel) + '</span>'
-    : act.flightLabel ? '<span class="cfd-train-label">' + esc(act.flightLabel) + '</span>'
-    : '<span class="cfd-arrow-plane">✈</span>';
-  const leftPanel =
-    '<div class="cfd-left">' +
-      '<div class="cfd-fltn">DH</div>' +
-      '<div class="cfd-meta">' +
-        '<span class="cfd-ci-label">CI</span>' +
-        '<span class="cfd-ci">' + (act.checkInUtc || '—') + '</span>' +
-      '</div>' +
-      '<div class="cfd-badges">' + badges + '</div>' +
-    '</div>' +
-    '<div class="cfd-divider"></div>';
+  const frag = document.createDocumentFragment();
 
-  // Departure side: suppress ARR when crossing midnight
-  const isDepart = !act.dep && act.arr;   // arrival-only leg (cont from yesterday)
-  const isCross  = act.dep && ((!act.eta && !!act.etd) || nightOffset(act.etd, act.eta) > 0);
+  // ── Pill sopra la card: CI time + DH POSITIONING ──────────────
+  // Logica: se CI presente → "C/I HH:MM UTC | DH POSITIONING [service]"
+  //         se CI assente  → solo "DH POSITIONING [service]"
+  const _dhNote =
+    'DH POSITIONING' +
+    (act.service ? ' · ' + esc(act.service) : '');
+
+  const pillEl = document.createElement('div');
+  pillEl.className = 'duty-ci-header';
+
+  if (act.checkInUtc) {
+    pillEl.innerHTML =
+      '<div class="duty-ci-pill">' +
+        '<div class="duty-ci-left">' +
+          '<span class="duty-ci-lbl">C/I</span>' +
+          '<span class="duty-ci-time">' + esc(act.checkInUtc) + '</span>' +
+          '<span class="duty-ci-utc">UTC</span>' +
+        '</div>' +
+        '<div class="duty-ci-vsep"></div>' +
+        '<div class="duty-ci-right">' +
+          '<span class="duty-ci-note-code">' + _dhNote + '</span>' +
+        '</div>' +
+      '</div>' +
+      '<div class="duty-ci-line"></div>';
+  } else {
+    pillEl.innerHTML =
+      '<div class="duty-ci-pill">' +
+        '<div class="duty-ci-left">' +
+          '<span class="duty-ci-note-code">' + _dhNote + '</span>' +
+        '</div>' +
+      '</div>' +
+      '<div class="duty-ci-line"></div>';
+  }
+  frag.appendChild(pillEl);
+
+  // ── Arrow inner: train/flight label or plain dash ──────────────
+  const arrowInner =
+    act.trainLabel  ? '<span class="cfd-train-label">' + esc(act.trainLabel)  + '</span>'
+    : act.flightLabel ? '<span class="cfd-train-label">' + esc(act.flightLabel) + '</span>'
+    : '<span class="cfd-arrow-dash">––</span>';
+
+  const arrowTrack =
+    '<div class="cfd-arrow-row">' +
+      '<div class="cfd-arrow-line-l"></div>' +
+      arrowInner +
+      '<div class="cfd-arrow-line-r"></div>' +
+    '</div>';
+
+  // ── Left panel: only "DH" label, large, centered ──────────────
+  const leftPanel =
+    '<div class="cfd-left cfd-left-dh">' +
+      '<div class="cfd-dh-label">DH</div>' +
+    '</div>';
+
+  // ── Routing variants ──────────────────────────────────────────
+  const isArrOnly = !act.dep && act.arr;
+  const isCross   = act.dep && ((!act.eta && !!act.etd) || nightOffset(act.etd, act.eta) > 0);
 
   let rightHtml;
-  if (isDepart) {
+  if (isArrOnly) {
     rightHtml =
-      '<div class="cfd-airport">' +
+      '<div class="cfd-airport dep">' +
         '<div class="cfd-iata cfd-iata-cont">···</div>' +
-        '<div class="cfd-time" style="opacity:0.35">—</div>' +
+        '<div class="cfd-time" style="opacity:0.28">—</div>' +
         '<div class="cfd-lbl">← −1</div>' +
       '</div>' +
-      '<div class="cfd-arrow"><div class="cfd-arrow-row"><div class="cfd-arrow-line"></div>' + arrowInner + '</div></div>' +
-      '<div class="cfd-airport">' +
+      '<div class="cfd-arrow">' + arrowTrack + '</div>' +
+      '<div class="cfd-airport arr">' +
         '<div class="cfd-iata">' + esc(act.arr) + '</div>' +
         '<div class="cfd-time">' + (act.eta||'—') + '</div>' +
         '<div class="cfd-lbl">STA</div>' +
       '</div>';
   } else if (isCross) {
     rightHtml =
-      '<div class="cfd-airport">' +
+      '<div class="cfd-airport dep">' +
         '<div class="cfd-iata">' + esc(act.dep) + '</div>' +
         '<div class="cfd-time">' + (act.etd||'—') + '</div>' +
         '<div class="cfd-lbl">STD</div>' +
       '</div>' +
-      '<div class="cfd-arrow"><div class="cfd-arrow-row"><div class="cfd-arrow-line"></div>' + arrowInner + '</div></div>' +
-      '<div class="cfd-airport">' +
+      '<div class="cfd-arrow">' + arrowTrack + '<span class="cfd-nextday">→ +1</span></div>' +
+      '<div class="cfd-airport arr">' +
         '<div class="cfd-iata cfd-iata-cont">···</div>' +
-        '<div class="cfd-time" style="opacity:0.35">—</div>' +
-        '<div class="cfd-lbl">→ +1</div>' +
+        '<div class="cfd-time" style="opacity:0.28">—</div>' +
+        '<div class="cfd-lbl">+1</div>' +
       '</div>';
   } else {
     rightHtml =
-      '<div class="cfd-airport">' +
+      '<div class="cfd-airport dep">' +
         '<div class="cfd-iata">' + esc(act.dep) + '</div>' +
         '<div class="cfd-time">' + (act.etd||'—') + '</div>' +
         '<div class="cfd-lbl">STD</div>' +
       '</div>' +
-      '<div class="cfd-arrow"><div class="cfd-arrow-row"><div class="cfd-arrow-line"></div>' + arrowInner + '</div></div>' +
-      '<div class="cfd-airport">' +
+      '<div class="cfd-arrow">' + arrowTrack + '</div>' +
+      '<div class="cfd-airport arr">' +
         '<div class="cfd-iata">' + esc(act.arr) + '</div>' +
         '<div class="cfd-time">' + (act.eta||'—') + '</div>' +
         '<div class="cfd-lbl">STA</div>' +
@@ -11590,11 +11828,20 @@ function renderDH(act) {
 
   const el = document.createElement('div');
   el.className = 'card-dh-dark';
-  el.innerHTML = '<div style="display:flex">' + leftPanel + '<div class="cfd-right">' + rightHtml + '</div></div>';
+  el.innerHTML =
+    '<div style="display:flex">' +
+      leftPanel +
+      '<div class="cfd-right">' + rightHtml + '</div>' +
+    '</div>';
+
   const dr = remarksHtml(act);
   if (dr) el.insertAdjacentHTML('beforeend', dr);
-  return el;
+
+  frag.appendChild(el);
+  return frag;
 }
+
+
 
 // ─────────────────────────────────────────────────────────────
 // UI HELPERS
